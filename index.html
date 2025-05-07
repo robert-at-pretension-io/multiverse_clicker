@@ -2900,17 +2900,18 @@
               strainFactor: 9,
               effect: (caster, target) => {
                 if (!target) return;
+                if (!target) return;
                 const currentAmount = Game.getResource(target.clickResource.id);
-                const newAmount = currentAmount * 0.1;
-                Game.resources[target.clickResource.id] = newAmount;
-                Bus.emit("resource:update", {
-                  resourceId: target.clickResource.id,
-                  amount: newAmount,
-                });
+                const amountToSetTo = currentAmount * 0.1;
+                const amountToRemove = currentAmount - amountToSetTo;
+                
+                // Use Game.addResource to ensure all associated logic (like event emission) is handled consistently
+                Game.addResource(target.clickResource.id, -amountToRemove);
+                
                 Bus.emit("feedback:message", {
                   message: `Paradox Surge! ${target.name}'s ${
                     target.clickResource.name
-                  } reverted to ${formatNumber(newAmount)}!`,
+                  } reverted to ${formatNumber(amountToSetTo)}!`,
                   type: "warning",
                 });
               },
