@@ -1875,6 +1875,12 @@
         }
 
         trophyEl.appendChild(tooltipText);
+
+        // Add click listener to show the modal for this trophy
+        trophyEl.addEventListener('click', () => {
+            showTrophyUnlockModal(trophy);
+        });
+
         return trophyEl;
       }
 
