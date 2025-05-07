@@ -623,6 +623,8 @@
     </div>
 
     <script>
+      const DOMAIN_UNLOCK_ORDER = ["gardeners", "soundwaves", "emotions", "soup", "snackbar", "fractals", "afterlives"];
+
       // --- 1. EVENT BUS ---
       const Bus = (() => {
         const listeners = new Map();
@@ -702,6 +704,7 @@
         Game.domains[cfg.id] = {
           ...cfg,
           level: 0,
+          unlocked: cfg.id === DOMAIN_UNLOCK_ORDER[0], // Unlock the first domain by default
           generators: (cfg.generators || []).map((g) => ({
             ...g,
             level: 0,
@@ -961,6 +964,7 @@
         Game.buffs = activeBuffs;
 
         Bus.emit("tick", dtMs);
+        checkAndUnlockNextDomain(); // Check for new domain unlocks
         checkAndUnlockTrophies(); // Check for new trophy unlocks
         TutorialManager.checkState(); // Check tutorial state every tick
       }
@@ -1079,6 +1083,7 @@
               delete g.costMultiplier;
             });
             d.abilities.forEach((a) => (a.nextUse = 0));
+            d.unlocked = (d.id === DOMAIN_UNLOCK_ORDER[0]); // Reset unlock status
             Game.addResource(d.clickResource.id, 0);
             // d.unlockedLoreLevel remains, as lore unlocks are persistent across prestiges.
           });
@@ -1169,6 +1174,7 @@
               nextUse: a.nextUse,
             })),
             unlockedLoreLevel: domain.unlockedLoreLevel,
+            unlocked: domain.unlocked, // Save unlock status
           };
         });
 
@@ -1231,8 +1237,9 @@
 
             if (savedDomain) {
               currentDomain.level = savedDomain.level || 0;
-              currentDomain.unlockedLoreLevel =
-                savedDomain.unlockedLoreLevel || 0;
+              currentDomain.unlockedLoreLevel = savedDomain.unlockedLoreLevel || 0;
+              currentDomain.unlocked = savedDomain.unlocked ?? (currentDomain.id === DOMAIN_UNLOCK_ORDER[0]);
+
 
               currentDomain.generators.forEach((currentGen) => {
                 const savedGen = savedDomain.generators?.find(
@@ -1913,6 +1920,74 @@
         }
       }
 
+      // --- DOMAIN UNLOCK LOGIC ---
+      function checkAndUnlockNextDomain() {
+        let previousDomainId = null;
+        let newDomainUnlockedThisTick = false;
+
+        for (const domainId of DOMAIN_UNLOCK_ORDER) {
+            const domain = Game.domains[domainId];
+            if (!domain) {
+                console.warn(`Domain ${domainId} not found in Game.domains during unlock check.`);
+                continue;
+            }
+
+            if (domain.unlocked) {
+                previousDomainId = domainId;
+                continue; 
+            }
+
+            if (domainId === DOMAIN_UNLOCK_ORDER[0]) { // First domain
+                if (!domain.unlocked) { // Should be unlocked by defineDomain
+                    domain.unlocked = true;
+                    Bus.emit("domain:unlocked", { domainId, isInitialUnlock: true });
+                    newDomainUnlockedThisTick = true;
+                }
+                previousDomainId = domainId;
+                continue;
+            }
+            
+            if (!previousDomainId) {
+                console.error("Unlock logic error: No previous unlocked domain found for", domainId);
+                break; 
+            }
+
+            const prevDomain = Game.domains[previousDomainId];
+            if (!prevDomain) {
+                 console.error(`Previous domain ${previousDomainId} not found for unlocking ${domainId}`);
+                 break;
+            }
+
+            let conditionMet = false;
+            if (domainId === "soundwaves" && prevDomain.id === "gardeners") {
+                conditionMet = prevDomain.generators.find(g => g.id === 'timelineBloomer')?.level >= 5;
+            } else if (domainId === "emotions" && prevDomain.id === "soundwaves") {
+                conditionMet = prevDomain.generators.find(g => g.id === 'cosmicArtist')?.level >= 5;
+            } else if (domainId === "soup" && prevDomain.id === "emotions") {
+                conditionMet = prevDomain.generators.find(g => g.id === 'empathyReactor')?.level >= 5;
+            } else if (domainId === "snackbar" && prevDomain.id === "soup") {
+                conditionMet = prevDomain.generators.find(g => g.id === 'primordialBroth')?.level >= 5;
+            } else if (domainId === "fractals" && prevDomain.id === "snackbar") {
+                conditionMet = prevDomain.generators.find(g => g.id === 'eraFoodTruck')?.level >= 5;
+            } else if (domainId === "afterlives" && prevDomain.id === "fractals") {
+                conditionMet = prevDomain.generators.find(g => g.id === 'fractalPet')?.level >= 5;
+            }
+
+            if (conditionMet) {
+                domain.unlocked = true;
+                Bus.emit("domain:unlocked", { domainId, isInitialUnlock: false });
+                newDomainUnlockedThisTick = true;
+                previousDomainId = domainId; 
+            } else {
+                break; 
+            }
+        }
+        if (newDomainUnlockedThisTick) {
+            renderAllDomains(); // Re-render if any domain was unlocked
+        }
+      }
+
+
       // --- TUTORIAL MANAGER ---
       const TutorialManager = (() => {
         const tutorialSteps = [
@@ -2481,7 +2556,19 @@
       }
       function renderAllDomains() {
         domainsContainer.innerHTML = "";
-        Object.values(Game.domains).forEach(renderDomainCard);
+        DOMAIN_UNLOCK_ORDER.forEach(domainId => {
+            const domain = Game.domains[domainId];
+            if (domain && domain.unlocked) {
+                renderDomainCard(domain);
+            }
+        });
+        // After rendering, ensure UI for all *visible* cards is up-to-date
+        DOMAIN_UNLOCK_ORDER.forEach(domainId => {
+            const domain = Game.domains[domainId];
+            if (domain && domain.unlocked) {
+                 updateDomainUICard(domainId); // Refresh UI for newly rendered cards
+            }
+        });
       }
       function updateGlobalStatsUI() {
         if (entropyTokensDisplay)
@@ -2624,6 +2711,30 @@
         // The gallery is re-rendered by checkAndUnlockTrophies itself
         showTrophyUnlockModal(trophy);
         // Removed the Bus.emit("feedback:message", ...) as the modal is more prominent
+      });
+      Bus.on("domain:unlocked", ({ domainId, isInitialUnlock }) => {
+        const domain = Game.domains[domainId];
+        if (domain && !isInitialUnlock) { // Don't announce the very first one
+            const message = `The ${domain.name} have emerged in the Conflux!`;
+            Bus.emit("feedback:message", {
+                message: message,
+                type: "success",
+                fontClass: "font-arcade text-lg",
+            });
+            // Add to story log for persistence
+            const storyLog = document.getElementById("story-log");
+            if (storyLog) {
+                if (!storyLogInitialized && storyLog) { // Ensure log is ready
+                    storyLog.innerHTML = "";
+                    storyLogInitialized = true;
+                }
+                const entry = document.createElement("p");
+                entry.className = "story-log-entry text-purple-400 font-bold";
+                entry.innerHTML = `🌌 ${message}`;
+                if (storyLog.firstChild) storyLog.insertBefore(entry, storyLog.firstChild);
+                else storyLog.appendChild(entry);
+            }
+        }
       });
 
       // --- TROPHY UNLOCK MODAL ---
@@ -3315,11 +3426,13 @@
         ); // Example of tying old story to new lore system
         addStoryEvent(
           "allDomainsActive",
-          () =>
-            Object.values(Game.domains).every((d) =>
-              d.generators.some((g) => g.level > 0)
-            ) && !storyEvents.find((e) => e.id === "allDomainsActive")?.fired,
-          "All seven Domains hum with activity. The Conflux is truly alive!"
+          (game) => {
+            const lastDomainId = DOMAIN_UNLOCK_ORDER[DOMAIN_UNLOCK_ORDER.length - 1];
+            return game.domains[lastDomainId]?.unlocked && 
+                   game.domains[lastDomainId]?.generators.some(g => g.level > 0);
+          },
+          "All known Domains hum with activity. The Conflux is truly alive!",
+          true // oneTime
         );
 
         // --- Multi-Level Lore Event Definitions ---
