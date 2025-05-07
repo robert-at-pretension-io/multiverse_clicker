@@ -1038,21 +1038,7 @@
               ev.fired = true;
               Game.storyFlags.storyEventStates[ev.id] = { fired: true }; // Persist change
             }
-            const storyLog = document.getElementById("story-log");
-            if (!storyLogInitialized && storyLog) {
-              storyLog.innerHTML = "";
-              storyLogInitialized = true;
-            }
-            const entry = document.createElement("p");
-            entry.className = "story-log-entry text-teal-300";
-            entry.innerHTML = `📜 ${ev.message}`;
-            if (storyLog) {
-              if (storyLog.firstChild)
-                storyLog.insertBefore(entry, storyLog.firstChild);
-              else storyLog.appendChild(entry);
-              while (storyLog.children.length > 20)
-                storyLog.removeChild(storyLog.lastChild);
-            }
+            addMessageToStoryLog(`📜 ${ev.message}`, "story-log-entry text-teal-300");
             if (ev.action) ev.action(Game);
             Bus.emit("story:fired", { eventId: ev.id, message: ev.message });
           }
@@ -2202,6 +2188,33 @@
       const targetOverlay = document.getElementById("target-overlay");
       const quickStartTagline = document.getElementById("quick-start-tagline");
 
+      function addMessageToStoryLog(messageContent, entryClass = "story-log-entry text-gray-300") {
+        const storyLog = document.getElementById("story-log");
+        if (!storyLog) return;
+
+        // If the story log hasn't been "initialized" for the current session (e.g., after load/prestige),
+        // clear its initial placeholder content.
+        if (!storyLogInitialized) {
+            storyLog.innerHTML = "";
+            storyLogInitialized = true;
+        }
+
+        const entry = document.createElement("p");
+        entry.className = entryClass;
+        entry.innerHTML = messageContent; // Use innerHTML to support icons/formatting
+
+        if (storyLog.firstChild) {
+            storyLog.insertBefore(entry, storyLog.firstChild);
+        } else {
+            storyLog.appendChild(entry);
+        }
+
+        // Keep the log to a manageable size
+        while (storyLog.children.length > 20) {
+            storyLog.removeChild(storyLog.lastChild);
+        }
+      }
+
       function formatNumber(num) {
         if (num === undefined || num === null) return "0.00";
         if (Math.abs(num) < 0.0001 && num !== 0) return num.toExponential(2);
@@ -2668,22 +2681,15 @@
         });
       });
       Bus.on("feedback:message", (payload) => {
-        /* ... existing feedback message logic ... */
         const { message, type = "info", fontClass } = payload;
-        const area = document.getElementById("story-log");
-        if (!area) return;
-        const entry = document.createElement("p");
         let color = "text-gray-300";
         if (type === "success") color = "text-green-400";
         else if (type === "warning") color = "text-yellow-400";
         else if (type === "error") color = "text-red-400";
-        entry.className = `story-log-entry italic ${color} ${fontClass || ""}`;
-        entry.textContent = `📢 ${message}`;
-        if (area.firstChild) area.insertBefore(entry, area.firstChild);
-        else area.appendChild(entry);
-        setTimeout(() => {
-          if (entry.parentNode) entry.parentNode.removeChild(entry);
-        }, 5000);
+        
+        // The message content for addMessageToStoryLog should be HTML-ready
+        const messageHTML = `📢 ${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}`; // Basic HTML escaping for the message part
+        addMessageToStoryLog(messageHTML, `story-log-entry italic ${color} ${fontClass || ""}`);
       });
       Bus.on("feedback:click_visual", ({ element, x, y, text }) => {
         /* ... existing click visual logic ... */
@@ -2723,18 +2729,8 @@
                 fontClass: "font-arcade text-lg",
             });
             // Add to story log for persistence
-            const storyLog = document.getElementById("story-log");
-            if (storyLog) {
-                if (!storyLogInitialized && storyLog) { // Ensure log is ready
-                    storyLog.innerHTML = "";
-                    storyLogInitialized = true;
-                }
-                const entry = document.createElement("p");
-                entry.className = "story-log-entry text-purple-400 font-bold";
-                entry.innerHTML = `🌌 ${message}`;
-                if (storyLog.firstChild) storyLog.insertBefore(entry, storyLog.firstChild);
-                else storyLog.appendChild(entry);
-            }
+            const messageHTML = `🌌 ${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}`; // Basic HTML escaping
+            addMessageToStoryLog(messageHTML, "story-log-entry text-purple-400 font-bold");
         }
       });
 
