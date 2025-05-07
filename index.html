@@ -151,9 +151,13 @@
         color: white;
         font-size: 1.5rem;
       }
-      .domain-card.targetable:hover {
-        outline: 2px solid #fbbf24; /* amber-400 */
+      .domain-card.targetable { /* Style for when a domain is a valid target */
+        outline: 2px solid #fbbf24; /* amber-400 - Persistent outline */
         cursor: crosshair;
+        /* opacity-75 is applied via JS, which is fine */
+      }
+      .domain-card.targetable:hover { /* Optional: slightly different hover style if needed */
+        outline-width: 3px; /* Example: thicker outline on hover */
       }
       .stat-bar {
         height: 10px;
@@ -796,6 +800,19 @@
           return;
         }
         if (ability.requiresTarget && !targetDomainId) {
+          // Check if we are already targeting with this exact ability
+          if (
+            Game.activeTargeting &&
+            Game.activeTargeting.casterId === casterDomainId &&
+            Game.activeTargeting.abilityId === abilityId
+          ) {
+            // Clicked the same ability button again, so cancel targeting
+            Game.activeTargeting = null;
+            Bus.emit("ability:targeting_ended");
+            return; // Exit castAbility
+          }
+
+          // Otherwise, start new targeting
           Game.activeTargeting = {
             casterId: casterDomainId,
             abilityId: abilityId,
@@ -3442,6 +3459,23 @@
         } else {
           TutorialManager.checkState(); // If initial modal skipped, start coach marks
         }
+
+        // Add listeners for cancelling ability targeting
+        if (targetOverlay) {
+            targetOverlay.addEventListener('click', (event) => {
+                // Only cancel if the click is directly on the overlay, not on a card within it
+                if (event.target === targetOverlay && Game.activeTargeting) {
+                    Game.activeTargeting = null;
+                    Bus.emit("ability:targeting_ended");
+                }
+            });
+        }
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && Game.activeTargeting) {
+                Game.activeTargeting = null;
+                Bus.emit("ability:targeting_ended");
+            }
+        });
 
         Game.lastUpdate = Date.now();
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
