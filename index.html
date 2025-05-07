@@ -646,6 +646,7 @@
           // --- Flags that reset on prestige ---
           soup_slurpsThisPrestige: 0,
           snackbar_surgesThisPrestige: 0,
+          storyEventStates: {}, // To store { eventId: { fired: boolean } }
         },
         unlockedTrophies: new Set(), // For tracking unlocked gallery images
 
@@ -984,14 +985,18 @@
           trigger: triggerFn,
           message,
           action: onFireAction,
-          fired: false,
+          fired: Game.storyFlags.storyEventStates[id]?.fired || false, // Initialize from persistent state
           oneTime,
         });
       }
       function checkStoryEvents() {
         storyEvents.forEach((ev) => {
+          // ev.fired is initialized by addStoryEvent using Game.storyFlags.storyEventStates
           if ((!ev.fired || !ev.oneTime) && ev.trigger(Game)) {
-            if (ev.oneTime) ev.fired = true;
+            if (ev.oneTime) {
+              ev.fired = true;
+              Game.storyFlags.storyEventStates[ev.id] = { fired: true }; // Persist change
+            }
             const storyLog = document.getElementById("story-log");
             if (!storyLogInitialized && storyLog) {
               storyLog.innerHTML = "";
@@ -1051,7 +1056,13 @@
 
           storyEvents.forEach((ev) => {
             // For lore events, they are typically oneTime. If any non-lore story events are repeatable per prestige:
-            if (!ev.oneTime && !ev.id.includes("_lore_lvl")) ev.fired = false;
+            if (!ev.oneTime && !ev.id.includes("_lore_lvl")) {
+                 ev.fired = false;
+                 // Also update persistent state:
+                 if (Game.storyFlags.storyEventStates[ev.id]) {
+                    Game.storyFlags.storyEventStates[ev.id].fired = false;
+                 }
+            }
           });
           storyLogInitialized = false;
           const storyLog = document.getElementById("story-log");
@@ -3011,6 +3022,7 @@
       }
 
       function defineStorylines() {
+        storyEvents.length = 0; // Clear existing story events before redefining
         // Standard Story Events
         addStoryEvent(
           "genesis",
@@ -3389,10 +3401,11 @@
 
       // --- INITIALIZATION ---
       window.onload = () => {
-        defineAllDomains(); // Define structures first
-        defineStorylines(); 
+        defineAllDomains(); // Define domain structures first
         
-        const gameWasLoaded = loadGame(); // Attempt to load saved game
+        const gameWasLoaded = loadGame(); // Attempt to load saved game (populates Game.storyFlags)
+        
+        defineStorylines(); // Now define storylines; addStoryEvent will use loaded Game.storyFlags.storyEventStates
 
         if (!gameWasLoaded) {
           // If no game was loaded, initialize fresh state aspects
