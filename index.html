@@ -3362,7 +3362,7 @@
             )?.level > 0 &&
             !localStorage.getItem("tutorialFullyCompleted_v1"),
           "Hint: Your Generators work even when you're not actively clicking. Check back later to see your earnings!",
-          false // Repeatable until tutorial is done
+          true // Changed to true to fire only once
         );
         addStoryEvent(
           "tutorialStrainHint",
@@ -3371,7 +3371,7 @@
             Game.prestigeCount === 0 &&
             !localStorage.getItem("tutorialFullyCompleted_v1"),
           "Hint: Reality Strain is getting high! Soon you'll be able to 'Conflux Collapse' for powerful Entropy Tokens.",
-          false
+          true // Changed to true to fire only once
         );
       }
 
