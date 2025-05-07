@@ -77,12 +77,12 @@
         border: 1px solid #374151; /* border-gray-700 */
         border-radius: 0.5rem; /* rounded-lg */
         padding: 1rem;
-        max-height: 200px;
+        max-height: 280px; /* Increased height */
         overflow-y: auto;
-        font-size: 0.875rem; /* text-sm */
+        font-size: 1rem; /* Increased font size (text-base) */
       }
       .story-log-entry {
-        padding: 0.25rem 0;
+        padding: 0.375rem 0; /* Adjusted padding */
         border-bottom: 1px solid #374151; /* border-gray-700 */
       }
       .story-log-entry:last-child {
@@ -437,49 +437,47 @@
         </div>
       </header>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div class="bg-gray-800 p-4 rounded-lg shadow-md">
-          <h2 class="text-xl font-semibold mb-2 text-amber-400">
-            Global Stats
-          </h2>
-          <p>
-            Entropy Tokens:
-            <span
-              id="entropy-tokens-display"
-              class="font-bold text-xl text-purple-400"
-              >0</span
-            >
-          </p>
-          <p class="mt-1">
-            Reality Strain:
-            <span
-              id="reality-strain-display"
-              class="font-bold text-xl text-red-400"
-              >0</span
-            >
-            / 100
-          </p>
-          <div class="stat-bar mt-2">
-            <div id="reality-strain-bar" class="stat-bar-fill"></div>
-          </div>
-          <button
-            id="prestige-button"
-            class="btn btn-primary mt-4 w-full font-arcade text-lg"
-            disabled
+      <!-- Global Stats Container -->
+      <div class="bg-gray-800 p-4 rounded-lg shadow-md mb-6">
+        <h2 class="text-xl font-semibold mb-2 text-amber-400">
+          Global Stats
+        </h2>
+        <p>
+          Entropy Tokens:
+          <span
+            id="entropy-tokens-display"
+            class="font-bold text-xl text-purple-400"
+            >0</span
           >
-            Conflux Collapse!
-          </button>
+        </p>
+        <p class="mt-1">
+          Reality Strain:
+          <span
+            id="reality-strain-display"
+            class="font-bold text-xl text-red-400"
+            >0</span
+          >
+          / 100
+        </p>
+        <div class="stat-bar mt-2">
+          <div id="reality-strain-bar" class="stat-bar-fill"></div>
         </div>
-        <div
-          id="story-log-container"
-          class="bg-gray-800 p-4 rounded-lg shadow-md"
+        <button
+          id="prestige-button"
+          class="btn btn-primary mt-4 w-full font-arcade text-lg"
+          disabled
         >
-          <h2 class="text-xl font-semibold mb-2 text-sky-400">
-            Conflux Echoes (Story Log)
-          </h2>
-          <div id="story-log" class="story-log">
-            <p class="text-gray-500">The universe is quiet... for now.</p>
-          </div>
+          Conflux Collapse!
+        </button>
+      </div>
+
+      <!-- Story Log Container -->
+      <div id="story-log-container" class="bg-gray-800 p-4 rounded-lg shadow-md mb-6">
+        <h2 class="text-xl font-semibold mb-2 text-sky-400">
+          Conflux Echoes (Story Log)
+        </h2>
+        <div id="story-log" class="story-log">
+          <p class="text-gray-500">The universe is quiet... for now.</p>
         </div>
       </div>
 
