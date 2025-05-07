@@ -401,36 +401,40 @@
   </head>
   <body class="min-h-screen p-2 sm:p-4 md:p-6">
     <div class="container mx-auto max-w-7xl">
-      <header class="mb-6 text-center relative">
-        <div class="absolute top-0 right-0 m-1 sm:m-2 flex space-x-2">
+      <header
+        class="mb-6 flex flex-col md:flex-row md:justify-between md:items-center"
+      >
+        <div class="text-center md:text-left mb-4 md:mb-0">
+          <h1
+            class="text-3xl sm:text-4xl md:text-5xl font-arcade text-indigo-400"
+          >
+            Idle Universe
+          </h1>
+          <p class="text-lg sm:text-xl font-arcade text-indigo-200">
+            The Omnidimensional Conflux
+          </p>
+          <p id="quick-start-tagline" class="text-sm text-amber-300 mt-1"></p>
+        </div>
+        <div class="flex flex-wrap justify-center md:justify-end space-x-2">
           <button
             id="save-game-button"
-            class="btn btn-secondary text-sm font-arcade"
+            class="btn btn-secondary text-sm font-arcade mb-2 md:mb-0"
           >
             Save
           </button>
           <button
             id="load-game-button"
-            class="btn btn-secondary text-sm font-arcade"
+            class="btn btn-secondary text-sm font-arcade mb-2 md:mb-0"
           >
             Load
           </button>
           <button
             id="help-button"
-            class="btn btn-secondary text-sm font-arcade"
+            class="btn btn-secondary text-sm font-arcade mb-2 md:mb-0"
           >
             Help (?)
           </button>
         </div>
-        <h1
-          class="text-3xl sm:text-4xl md:text-5xl font-arcade text-indigo-400"
-        >
-          Idle Universe
-        </h1>
-        <p class="text-lg sm:text-xl font-arcade text-indigo-200">
-          The Omnidimensional Conflux
-        </p>
-        <p id="quick-start-tagline" class="text-sm text-amber-300 mt-1"></p>
       </header>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
