@@ -353,10 +353,26 @@
 
         // --- 2. CORE STATE CONTAINER ---
         const Game = {
-            t: 0, lastUpdate: Date.now(), domains: {}, resources: {}, buffs: [], 
+            t: 0, lastUpdate: Date.now(), domains: {}, resources: {}, buffs: [],
             entropyTokens: 0, realityStrain: 0, maxRealityStrain: 100, prestigeCount: 0,
             activeTargeting: null,
             tutorialFlags: {}, // For in-session tutorial step tracking
+            storyFlags: { // For multi-level lore and specific story event triggers
+                // --- Flags for "cast ability X once EVER" ---
+                gardeners_castCollapseCertaintyOnce: false,
+                soundwaves_castDissonanceBurstOnce: false,
+                soup_castBigSlurpOnce: false,
+                afterlives_castAuditRivalOnce: false,
+                fractals_castRecursiveSwarmOnce: false,
+                snackbar_castParadoxSurgeOnce: false,
+                emotions_castSerenityFieldOnce: false,
+                // --- Flags for "achieve X with Y ability EVER" ---
+                rivalsTargetedByAbilities: new Set(), // Stores domain IDs of rivals targeted by any ability
+                afterlives_auditedRivals: new Set(), // Stores domain IDs of rivals audited by Bureaucratic Afterlives
+                // --- Flags that reset on prestige ---
+                soup_slurpsThisPrestige: 0,
+                snackbar_surgesThisPrestige: 0,
+            },
 
             addResource(id, amt = 0) {
                 this.resources[id] = (this.resources[id] ?? 0) + amt;
@@ -373,16 +389,21 @@
         // --- 3. FACTORY HELPERS ---
         function defineDomain(cfg) {
             Game.domains[cfg.id] = {
-                ...cfg, level: 0, 
+                ...cfg, level: 0,
                 generators: (cfg.generators || []).map(g => ({ ...g, level: 0, currentCost: { ...g.baseCost } })),
                 abilities: (cfg.abilities || []).map(a => ({ ...a, nextUse: 0 })),
-                isTargetable: false 
+                isTargetable: false,
+                allLoreTexts: cfg.allLoreTexts || [], // Array of 10 lore strings
+                unlockedLoreLevel: 0 // Highest lore level unlocked for this domain
             };
-            Game.addResource(cfg.clickResource.id, 0); 
-            cfg.generators.forEach(gen => Object.keys(gen.baseCost).forEach(resId => Game.addResource(resId, 0)));
-            cfg.abilities.forEach(ab => { if(ab.cost) Object.keys(ab.cost).forEach(resId => Game.addResource(resId, 0)); });
+            // Ensure current `lore` property from cfg is not directly used if `allLoreTexts` is primary
+            // delete Game.domains[cfg.id].lore; // Or handle its transition carefully
+
+            Game.addResource(cfg.clickResource.id, 0);
+            (cfg.generators || []).forEach(gen => Object.keys(gen.baseCost).forEach(resId => Game.addResource(resId, 0)));
+            (cfg.abilities || []).forEach(ab => { if(ab.cost) Object.keys(ab.cost).forEach(resId => Game.addResource(resId, 0)); });
         }
-        
+
         // --- 4. CORE GAME ACTIONS (clickDomain, buyGenerator, castAbility, tick) ---
         // These functions remain largely the same as in the previous version,
         // with minor adjustments for tutorial integration or clarity if needed.
@@ -451,11 +472,34 @@
 
             if (payCost(ability.cost)) {
                 const targetDomain = targetDomainId ? Game.domains[targetDomainId] : null;
-                try { ability.effect(casterDomain, targetDomain); } 
+                try { ability.effect(casterDomain, targetDomain); }
                 catch (e) { console.error("Error executing ability effect:", ability.id, e); Bus.emit('feedback:message', { message: `Error with ability ${ability.name}.`, type: 'error' }); return; }
                 ability.nextUse = Game.t + ability.cooldownMs;
-                Game.increaseRealityStrain( (ability.strainFactor || 1) * (Game.prestigeCount + 1)); 
+                Game.increaseRealityStrain( (ability.strainFactor || 1) * (Game.prestigeCount + 1));
                 Bus.emit('ability:cast', { casterDomainId, abilityId, targetDomainId, nextUse: ability.nextUse });
+
+                // --- Story Flag Updates on Ability Cast ---
+                if (targetDomainId && targetDomainId !== casterDomainId) {
+                    Game.storyFlags.rivalsTargetedByAbilities.add(targetDomainId);
+                }
+                if (casterDomainId === 'gardeners' && abilityId === 'collapseCertainty') Game.storyFlags.gardeners_castCollapseCertaintyOnce = true;
+                if (casterDomainId === 'soundwaves' && abilityId === 'dissonanceBurst') Game.storyFlags.soundwaves_castDissonanceBurstOnce = true;
+                if (casterDomainId === 'soup' && abilityId === 'bigSlurp') {
+                    Game.storyFlags.soup_castBigSlurpOnce = true;
+                    Game.storyFlags.soup_slurpsThisPrestige = (Game.storyFlags.soup_slurpsThisPrestige || 0) + 1;
+                }
+                if (casterDomainId === 'afterlives' && abilityId === 'auditRival') {
+                    Game.storyFlags.afterlives_castAuditRivalOnce = true;
+                    if (targetDomainId) Game.storyFlags.afterlives_auditedRivals.add(targetDomainId);
+                }
+                if (casterDomainId === 'fractals' && abilityId === 'recursiveSwarm') Game.storyFlags.fractals_castRecursiveSwarmOnce = true;
+                if (casterDomainId === 'snackbar' && abilityId === 'paradoxSurge') {
+                    Game.storyFlags.snackbar_castParadoxSurgeOnce = true;
+                    Game.storyFlags.snackbar_surgesThisPrestige = (Game.storyFlags.snackbar_surgesThisPrestige || 0) + 1;
+                }
+                if (casterDomainId === 'emotions' && abilityId === 'serenityField') Game.storyFlags.emotions_castSerenityFieldOnce = true;
+                // --- End Story Flag Updates ---
+
                 if(Game.activeTargeting) Bus.emit('ability:targeting_ended');
                 Game.activeTargeting = null;
                  // Tutorial Hook for first ability cast
@@ -561,10 +605,21 @@
                 Game.entropyTokens += tokensEarned; Game.prestigeCount++; Game.resources = {}; 
                 Object.values(Game.domains).forEach(d => {
                     d.level = 0; d.generators.forEach(g => { g.level = 0; g.currentCost = { ...g.baseCost }; delete g.costMultiplier; });
-                    d.abilities.forEach(a => a.nextUse = 0); Game.addResource(d.clickResource.id, 0); 
+                    d.abilities.forEach(a => a.nextUse = 0); Game.addResource(d.clickResource.id, 0);
+                    // d.unlockedLoreLevel remains, as lore unlocks are persistent across prestiges.
                 });
                 Game.buffs = []; Game.realityStrain = 0; Game.tutorialFlags = {}; // Reset in-session tutorial flags
-                storyEvents.forEach(ev => { if(!ev.oneTime) ev.fired = false; }); storyLogInitialized = false; 
+                
+                // Reset cycle-specific story flags
+                Game.storyFlags.soup_slurpsThisPrestige = 0;
+                Game.storyFlags.snackbar_surgesThisPrestige = 0;
+                // Persistent story flags (like castOnce, rivalsTargetedByAbilities, auditedRivals) are NOT reset here.
+
+                storyEvents.forEach(ev => { 
+                    // For lore events, they are typically oneTime. If any non-lore story events are repeatable per prestige:
+                    if(!ev.oneTime && !ev.id.includes('_lore_lvl')) ev.fired = false; 
+                }); 
+                storyLogInitialized = false;
                 const storyLog = document.getElementById('story-log'); if(storyLog) storyLog.innerHTML = '<p class="text-gray-500">A new cycle begins...</p>';
                 Bus.emit('game:prestiged', { tokensEarned, totalTokens: Game.entropyTokens });
                 Bus.emit('feedback:message', { message: `Conflux Collapsed! Earned ${tokensEarned} Entropy Tokens.`, type: 'success', fontClass: 'font-arcade text-xl' });
@@ -900,12 +955,40 @@
         const loreModalTitle = document.getElementById('lore-modal-title');
         const loreModalContent = document.getElementById('lore-modal-content');
         const closeLoreModalButton = document.getElementById('close-lore-modal');
+
         function showLoreModal(domainId) {
             const domain = Game.domains[domainId];
-            if (!domain || !domain.lore) { loreModalTitle.textContent = "Lore Unavailable"; loreModalContent.innerHTML = "<p>Texts unreadable.</p>"; } 
-            else { loreModalTitle.textContent = `${domain.name}`; loreModalContent.innerHTML = domain.lore.split(/\n\s*\n/).map(p => `<p class="mb-3 text-base">${p.trim().replace(/\n/g, '<br>')}</p>`).join(''); }
+            if (!domain) {
+                console.warn("Lore modal: Domain not found", domainId);
+                return;
+            }
+
+            loreModalTitle.textContent = `${domain.name} - Lore`;
+            let contentHTML = '';
+
+            if (!domain.allLoreTexts || domain.allLoreTexts.length === 0) {
+                contentHTML = "<p>No lore entries defined for this domain.</p>";
+            } else if (domain.unlockedLoreLevel === 0) {
+                contentHTML = `<p class="text-gray-400 italic">No lore unlocked yet for ${domain.name}. Keep playing to uncover its secrets!</p>`;
+            } else {
+                for (let i = 0; i < domain.unlockedLoreLevel; i++) {
+                    if (domain.allLoreTexts[i]) {
+                        contentHTML += `<div class="mb-4 pb-2 border-b border-gray-700 last:border-b-0">`;
+                        contentHTML += `<h4 class="text-lg font-semibold text-amber-300 mb-1">Level ${i + 1}</h4>`;
+                        // Simple paragraph splitting for potentially longer lore entries, or just display as is.
+                        // Assuming each lore entry is a single block of text for now.
+                        contentHTML += `<p class="text-base text-gray-300">${domain.allLoreTexts[i]}</p>`;
+                        contentHTML += `</div>`;
+                    }
+                }
+                 if (domain.unlockedLoreLevel < domain.allLoreTexts.length) {
+                    contentHTML += `<p class="mt-4 text-gray-500 italic">More lore awaits discovery...</p>`;
+                }
+            }
+            loreModalContent.innerHTML = contentHTML;
             if (loreModal) loreModal.classList.remove('hidden');
         }
+
         if (closeLoreModalButton && loreModal) closeLoreModalButton.addEventListener('click', () => loreModal.classList.add('hidden'));
         if (loreModal) loreModal.addEventListener('click', (e) => { if (e.target === loreModal) loreModal.classList.add('hidden'); });
 
@@ -938,30 +1021,268 @@
         // This function is very long and mostly unchanged from the previous version where lore was added.
         // Ensure all `id` attributes on clickable elements are correct for tutorial selectors.
         function defineAllDomains() {
-            Game.resources_map = { 'probabilityPetal': { name: 'Petals' }, /* ... other resources ... */ };
-             defineDomain({ id: 'gardeners', name: 'Quantum Gardeners', color: '#34D399', description: 'Tend probability-plants.', lore: `...`, clickResource: { id: 'probabilityPetal', name: 'Petals', baseAmount: 1 }, generators: [{ id: 'timelineBloomer', name: 'Timeline Bloomer', baseCost: { probabilityPetal: 10 }, costScaling: 1.15, baseProd: { probabilityPetal: 0.1 }, prodScaling: 1.1, description: 'Sprites for your garden.' }], abilities: [{ id: 'collapseCertainty', name: 'Collapse Certainty', type: 'aggressive', cost: { probabilityPetal: 100 }, cooldownMs: 30000, strainFactor: 5, effect: (caster, target) => { if (!target) return; addBuff({ id: `certaintyCollapse_${target.id}`, replacesExisting: true, domainId: target.id, durationMs: 10000, affects: 'production', multiplier: 0.5, description: `${target.name}'s production halved!`, onApply: () => Bus.emit('feedback:message', {message: `${target.name}'s production collapsed!`, type: 'warning'}), onEnd: () => Bus.emit('feedback:message', {message: `${target.name}'s production restored.`, type: 'info'}) }); Bus.emit('feedback:message', {message: `Certainty collapsed for ${target.name}!`, type: 'success'}); }, description: 'Reduce rival\'s production by 50%.', requiresTarget: true }]});
-            // ... Definitions for soundwaves, soup, afterlives, fractals, snackbar, emotions ...
-            // Ensure all lore text from previous step is included here.
-            // For brevity, I'm only showing the structure for gardeners.
-            // The full definitions from the "lore added" step should be here.
-             defineDomain({ id: 'soundwaves', name: 'Sentient Soundwaves', color: '#60A5FA', description: 'Interdimensional record label.', lore: `Sentient Soundwave Studio – The Resonance Rift...`, clickResource: { id: 'echoRoyalty', name: 'Echoes', baseAmount: 1 }, generators: [{ id: 'cosmicArtist', name: 'Cosmic Artist', baseCost: { echoRoyalty: 12 }, costScaling: 1.16, baseProd: { echoRoyalty: 0.12 }, prodScaling: 1.1, description: 'Soundwave beings jam.'}], abilities: [{ id: 'dissonanceBurst', name: 'Dissonance Burst', type: 'aggressive', cost: { echoRoyalty: 120 }, cooldownMs: 45000, strainFactor: 6, effect: (caster, target) => { if(!target) return; addBuff({id: `dissonance_${target.id}`, replacesExisting: true, domainId: target.id, durationMs: 15000, affects: 'click', multiplier: 0.25, description: `${target.name}'s click power scrambled!`, onApply: ()=> Bus.emit('feedback:message', {message: `${target.name}'s clicks dissonant!`, type:'warning'}), onEnd: ()=> Bus.emit('feedback:message', {message:`${target.name}'s clicks harmonic.`, type:'info'}) }); Bus.emit('feedback:message',{message:`Dissonance burst sent to ${target.name}!`,type:'success'});}, description: 'Scramble rival\'s click power by 75%.', requiresTarget: true}]});
-            defineDomain({ id: 'soup', name: 'Cosmic Soup Ladle', color: '#FBBF24', description: 'Primordial cauldron.', lore: `Cosmic Soup Ladle – Primordial Cauldron...`, clickResource: { id: 'flavorQuark', name: 'Quarks', baseAmount: 1 }, generators: [{id: 'primordialBroth', name: 'Primordial Broth', baseCost: {flavorQuark: 15}, costScaling: 1.17, baseProd: {flavorQuark: 0.15}, prodScaling: 1.1, description: 'Simmers quarks.'}], abilities: [{id: 'bigSlurp', name: 'Big Slurp', type: 'utility', cost: {flavorQuark: 200}, cooldownMs: 120000, strainFactor: 10, effect: (caster)=>{ let totalSlurpedToGain=0; Object.values(Game.domains).forEach(d=>{ if(d.id !== caster.id){ const amountSlurped = Game.getResource(d.clickResource.id)*0.05; Game.addResource(d.clickResource.id, -amountSlurped); totalSlurpedToGain += amountSlurped*0.5; Bus.emit('feedback:message',{message:`${caster.name} slurped ${formatNumber(amountSlurped)} ${d.clickResource.name} from ${d.name}!`, type:'warning'});}}); Game.addResource(caster.clickResource.id, totalSlurpedToGain); Bus.emit('feedback:message',{message:`Big Slurp! Gained ${formatNumber(totalSlurpedToGain)} ${caster.clickResource.name}!`, type:'success'});}, description: 'Drain 5% of others\' resources, keep half.', requiresTarget: false}]});
-            defineDomain({ id: 'afterlives', name: 'Bureaucratic Afterlives', color: '#A78BFA', description: 'Process souls.', lore: `Bureau of Bureaucratic Afterlives – Clerical Purgatoria...`, clickResource: { id: 'existentialStamp', name: 'Stamps', baseAmount: 1 }, generators: [{id: 'soulClerk', name: 'Soul Clerk', baseCost: {existentialStamp: 20}, costScaling: 1.18, baseProd: {existentialStamp: 0.2}, prodScaling: 1.1, description: 'Ghosts with staplers.'}], abilities: [{id: 'auditRival', name: 'Audit Rival', type: 'aggressive', cost: {existentialStamp: 150}, cooldownMs: 60000, strainFactor: 7, effect: (caster, target)=>{if(!target) return; addBuff({id: `audit_${target.id}`, replacesExisting: true, domainId: target.id, durationMs: 30000, customEffect: true, description: `${target.name} audited! Costs up 50%.`, onApply: (game, domainId)=>{ const tDomain = game.domains[domainId]; tDomain.generators.forEach(g=>g.costMultiplier=(g.costMultiplier||1)*1.5); Bus.emit('feedback:message',{message:`${target.name} audited! Costs up!`,type:'warning'}); updateDomainUICard(target.id);}, onEnd: (game, domainId)=>{ const tDomain = game.domains[domainId]; tDomain.generators.forEach(g=>g.costMultiplier=(g.costMultiplier||1)/1.5); Bus.emit('feedback:message',{message:`Audit for ${target.name} ended.`,type:'info'}); updateDomainUICard(target.id);}}); Bus.emit('feedback:message',{message:`Audit for ${target.name}!`,type:'success'});}, description: 'Increase rival\'s upgrade costs by 50%.', requiresTarget: true}]});
-            defineDomain({ id: 'fractals', name: 'Fractal Friend Factory', color: '#F472B6', description: 'Infinite kaleidoscope.', lore: `Fractal Friend Factory – Kaleidoscopic Forge...`, clickResource: { id: 'symmetryShard', name: 'Shards', baseAmount: 1 }, generators: [{id: 'fractalPet', name: 'Fractal Pet', baseCost: {symmetryShard: 25}, costScaling: 1.19, baseProd: {symmetryShard: 0.25}, prodScaling: 1.1, description: 'Self-similar critters.'}], abilities: [{id: 'recursiveSwarm', name: 'Recursive Swarm', type: 'aggressive', cost: {symmetryShard: 180}, cooldownMs: 75000, strainFactor: 8, effect: (caster, target)=>{if(!target) return; const amountStolen = Game.getResource(target.clickResource.id)*0.10; Game.addResource(target.clickResource.id, -amountStolen); Game.addResource(caster.clickResource.id, amountStolen); Bus.emit('feedback:message',{message:`Swarm stole ${formatNumber(amountStolen)} ${target.clickResource.name} from ${target.name}!`,type:'success'});}, description: 'Steal 10% of rival\'s resource.', requiresTarget: true}]});
-            defineDomain({ id: 'snackbar', name: 'Time-Traveling Snack Bar', color: '#FB923C', description: 'Chrono-burgers.', lore: `Time‑Traveling Snack Bar – Chrono‑Cantina...`, clickResource: { id: 'chronoTip', name: 'Tips', baseAmount: 1 }, generators: [{id: 'eraFoodTruck', name: 'Era Food Truck', baseCost: {chronoTip: 30}, costScaling: 1.20, baseProd: {chronoTip: 0.3}, prodScaling: 1.1, description: 'Dinosaur grease stains.'}], abilities: [{id: 'paradoxSurge', name: 'Paradox Surge', type: 'aggressive', cost: {chronoTip: 220}, cooldownMs: 90000, strainFactor: 9, effect: (caster, target)=>{if(!target) return; const currentAmount = Game.getResource(target.clickResource.id); const newAmount = currentAmount*0.10; Game.resources[target.clickResource.id]=newAmount; Bus.emit('resource:update',{resourceId: target.clickResource.id, amount: newAmount}); Bus.emit('feedback:message',{message:`Paradox Surge! ${target.name}'s ${target.clickResource.name} reverted to ${formatNumber(newAmount)}!`,type:'warning'});}, description: 'Revert rival\'s resource to 10%.', requiresTarget: true}]});
-            defineDomain({ id: 'emotions', name: 'Emotion Mining Co.', color: '#818CF8', description: 'Drill for feelings.', lore: `Emotion Mining Co. – The Sentient Stratum...`, clickResource: { id: 'vibeOre', name: 'Vibes', baseAmount: 1 }, generators: [{id: 'empathyReactor', name: 'Empathy Reactor', baseCost: {vibeOre: 35}, costScaling: 1.21, baseProd: {vibeOre: 0.35}, prodScaling: 1.1, description: 'Terraforms psyche-planet.'}], abilities: [{id: 'serenityField', name: 'Serenity Field', type: 'defensive', cost: {vibeOre: 250}, cooldownMs: 180000, strainFactor: 3, effect: (caster)=>{ addBuff({id: `serenityField_${caster.id}`, replacesExisting: true, domainId: caster.id, durationMs: 60000, affects: 'production', multiplier: 2.0, description: `${caster.name} protected! Production x2.`, onApply: ()=> Bus.emit('feedback:message',{message:`${caster.name} Serenity Field! Prod x2!`,type:'success'}), onEnd: ()=> Bus.emit('feedback:message',{message:`Serenity Field for ${caster.name} faded.`,type:'info'})});}, description: 'Boost own production by 100%.', requiresTarget: false}]});
+            Game.resources_map = {
+                'probabilityPetal': { name: 'Petals' }, 'echoRoyalty': { name: 'Echoes' }, 'flavorQuark': { name: 'Quarks' },
+                'existentialStamp': { name: 'Stamps' }, 'symmetryShard': { name: 'Shards' }, 'chronoTip': { name: 'Tips' },
+                'vibeOre': { name: 'Vibes' }
+            };
+
+            defineDomain({
+                id: 'gardeners', name: 'Quantum Gardeners', color: '#34D399', description: 'Tend probability-plants. They cultivate chance itself in the Probabilistic Grove.',
+                allLoreTexts: [
+                    "A rogue quantum computer, cornered in a collapsing lab, folded itself into a pocket reality of pure superposition. Its maintenance nanobots bloomed into the first Gardeners.",
+                    "Nanobots discover chlorophyll‑like photonic cells, letting plants photosynthesize probability instead of photons. Visitors hear dice roll whenever the vines rustle.",
+                    "Hourglass sprites hatch from discarded CPU heat sinks; they regulate causal flow the way bees pollinate flowers.",
+                    "Garden paths split into Schrödinger fork‑roads—walking left and right simultaneously increases Petal yield by √2.",
+                    "Collapsing a rival’s certainty leaks Entropy Dew, which Gardeners bottle as fertilizer. Side‑effect: nearby clocks stutter.",
+                    "A Quantum Greenhouse appears, its glass panes switching between wave and particle transparency. Tourists must sign a liability waiver for “temporal splinters.”",
+                    "Sonic pruning shears tune plant harmonics; petals hum perfect fifths that double growth. The Grove hums like a cosmic harp.",
+                    "The Many‑Worlds Orchard opens: fruit contains seed‑universes. Squeezing one grants a random passive buff or releases a minor paradox.",
+                    "Gardener elders weave a Probability Mantle that shields timelines from hostile audits, reducing future sabotage by 10%.",
+                    "Gardeners transcend botany, grafting reality stems directly onto entropy’s root. They can now “re‑bloom” collapsed timelines for permanent global multipliers."
+                ],
+                clickResource: { id: 'probabilityPetal', name: 'Petals', baseAmount: 1 },
+                generators: [{ id: 'timelineBloomer', name: 'Timeline Bloomer', baseCost: { probabilityPetal: 10 }, costScaling: 1.15, baseProd: { probabilityPetal: 0.1 }, prodScaling: 1.1, description: 'Sprites for your garden.' }],
+                abilities: [{ id: 'collapseCertainty', name: 'Collapse Certainty', type: 'aggressive', cost: { probabilityPetal: 100 }, cooldownMs: 30000, strainFactor: 5, effect: (caster, target) => { if (!target) return; addBuff({ id: `certaintyCollapse_${target.id}`, replacesExisting: true, domainId: target.id, durationMs: 10000, affects: 'production', multiplier: 0.5, description: `${target.name}'s production halved!`, onApply: () => Bus.emit('feedback:message', {message: `${target.name}'s production collapsed!`, type: 'warning'}), onEnd: () => Bus.emit('feedback:message', {message: `${target.name}'s production restored.`, type: 'info'}) }); Bus.emit('feedback:message', {message: `Certainty collapsed for ${target.name}!`, type: 'success'}); }, description: 'Reduce rival\'s production by 50%.', requiresTarget: true }]
+            });
+
+            defineDomain({
+                id: 'soundwaves', name: 'Sentient Soundwaves', color: '#60A5FA', description: 'Interdimensional record label from the Resonance Rift, where music is reality.',
+                allLoreTexts: [
+                    "Between the Big Bang’s heartbeats, free‑floating vibrations gained self‑awareness and vowed never to be silent again.",
+                    "Soundwaves invent Crystal Earphones that stream emotion‑encoded chords to every dimension, attracting new frequencies.",
+                    "“Bass‑Drop Billow” signs a single‑note contract; the note lasts three hours and bends local gravity in sync with the beat.",
+                    "Rift architects carve Amp‑Cathedrals whose spires refract sonic pressure into colored auroras. Clicks now leave cymbal sparks.",
+                    "Dissonance tears micro‑holes in quietude; silence leaks out as tangible black shards worth 5× Echo value when collected.",
+                    "The Chorus Collective premieres a song so catchy it loops itself into the past, retroactively doubling your first 10k Echoes.",
+                    "Joy‑nugget resonance creates Euphonic Alloy—a crafting‑grade material that buffs both Vibes and Echoes by 20%.",
+                    "A rogue sub‑bass line becomes sentient and legally divorces its parent track, causing a lawsuit that produces lucrative publicity.",
+                    "Soundwaves invent Noise‑Cancelling Reality Foam that temporarily halves incoming Strain.",
+                    "The Rift composes the Grand Unified Melody, syncing every Domain’s tick to a cosmic metronome and granting a permanent +5% global production."
+                ],
+                clickResource: { id: 'echoRoyalty', name: 'Echoes', baseAmount: 1 },
+                generators: [{ id: 'cosmicArtist', name: 'Cosmic Artist', baseCost: { echoRoyalty: 12 }, costScaling: 1.16, baseProd: { echoRoyalty: 0.12 }, prodScaling: 1.1, description: 'Soundwave beings jam.'}],
+                abilities: [{ id: 'dissonanceBurst', name: 'Dissonance Burst', type: 'aggressive', cost: { echoRoyalty: 120 }, cooldownMs: 45000, strainFactor: 6, effect: (caster, target) => { if(!target) return; addBuff({id: `dissonance_${target.id}`, replacesExisting: true, domainId: target.id, durationMs: 15000, affects: 'click', multiplier: 0.25, description: `${target.name}'s click power scrambled!`, onApply: ()=> Bus.emit('feedback:message', {message: `${target.name}'s clicks dissonant!`, type:'warning'}), onEnd: ()=> Bus.emit('feedback:message', {message:`${target.name}'s clicks harmonic.`, type:'info'}) }); Bus.emit('feedback:message',{message:`Dissonance burst sent to ${target.name}!`,type:'success'});}, description: 'Scramble rival\'s click power by 75%.', requiresTarget: true}]
+            });
+
+            defineDomain({
+                id: 'soup', name: 'Cosmic Soup Ladle', color: '#FBBF24', description: 'Stirring the Primordial Cauldron, one flavor-quark at a time.',
+                allLoreTexts: [
+                    "A utensil‑deity awakens, still tasting the flavor of nothingness. It refuses to retire until every atom is “properly seasoned.”",
+                    "Discovery of Bouillon Stars—dense nuggets of quark‑flavor that melt into reality, altering physical laws to taste “spicier.”",
+                    "Stirring produces Alphabet Particles; arranging them spells short-lived wishes that grant random buffs.",
+                    "The Ladle spins fast enough to shear off Flavor Foam—usable by other Domains as a universal solvent.",
+                    "Tasting rivals’ resources lets you map their flavor profiles; future Slurps gain +10% efficiency against already sampled Domains.",
+                    "Invent Reverse‑Time Noodles that cook by getting cooler; eating one refunds your last 5 seconds of mis‑clicks.",
+                    "Entropy Ramen hits the chrono‑menu, granting both Quark and Tip bonuses whenever served to the same patron twice in different eras.",
+                    "The Ladle graduates to Cosmo‑Sommelier, detecting subtle “oaky strings” in spacetime and monetizing them as a luxury spice.",
+                    "Rival chefs stage a Spoilage Rebellion. Defeating it unlocks Fermented Dark‑Matter Kimchi, a prestige‑era production boost.",
+                    "The Cauldron’s broth reaches Flavor Equilibrium, letting you “season” any new timeline at creation, seeding it with 1% of your Quark total."
+                ],
+                clickResource: { id: 'flavorQuark', name: 'Quarks', baseAmount: 1 },
+                generators: [{id: 'primordialBroth', name: 'Primordial Broth', baseCost: {flavorQuark: 15}, costScaling: 1.17, baseProd: {flavorQuark: 0.15}, prodScaling: 1.1, description: 'Simmers quarks.'}],
+                abilities: [{id: 'bigSlurp', name: 'Big Slurp', type: 'utility', cost: {flavorQuark: 200}, cooldownMs: 120000, strainFactor: 10, effect: (caster)=>{ let totalSlurpedToGain=0; Object.values(Game.domains).forEach(d=>{ if(d.id !== caster.id){ const amountSlurped = Game.getResource(d.clickResource.id)*0.05; Game.addResource(d.clickResource.id, -amountSlurped); totalSlurpedToGain += amountSlurped*0.5; Bus.emit('feedback:message',{message:`${caster.name} slurped ${formatNumber(amountSlurped)} ${d.clickResource.name} from ${d.name}!`, type:'warning'});}}); Game.addResource(caster.clickResource.id, totalSlurpedToGain); Bus.emit('feedback:message',{message:`Big Slurp! Gained ${formatNumber(totalSlurpedToGain)} ${caster.clickResource.name}!`, type:'success'});}, description: 'Drain 5% of others\' resources, keep half.', requiresTarget: false}]
+            });
+
+            defineDomain({
+                id: 'afterlives', name: 'Bureaucratic Afterlives', color: '#A78BFA', description: 'Processing souls in Clerical Purgatoria. Paperwork is eternal.',
+                allLoreTexts: [
+                    "Unanswered prayers condensed into paperwork; self‑aware forms demanded clerks, so ghosts applied.",
+                    "Spectral staplers go on strike; the Bureau legalizes Paperclips of Binding that keep ghouls docile and speed filing by 5%.",
+                    "The clerk’s first act: file a complaint about its own working conditions, spawning an eternal feedback loop that generates bonus Stamps.",
+                    "Infinite In‑Tray discovered; it autofills with forms from futures where you never existed. Processing them grants paradox insurance.",
+                    "Late fees crystallize into Debt‑Gremlins; if you click them they squeal and drop extra resources.",
+                    "The Bureau adopts Quantum Paperwork that is simultaneously approved and denied, cutting cooldowns in half.",
+                    "Petals used as eco‑friendly ink; green paperwork boosts Garden production while filing.",
+                    "Clerks unionize, forming GhOST (Local 404); concessions include coffee breaks that double Stamps during idle periods.",
+                    "You earn honorary title “Under‑Secretary of Metaphysical Compliance,” unlocking a passive 2% tax on all rival resource gains.",
+                    "The Bureau resolves its original backlog. New existential forms auto‑generate from dreams, granting permanent +1 Entropy Token per Collapse."
+                ],
+                clickResource: { id: 'existentialStamp', name: 'Stamps', baseAmount: 1 },
+                generators: [{id: 'soulClerk', name: 'Soul Clerk', baseCost: {existentialStamp: 20}, costScaling: 1.18, baseProd: {existentialStamp: 0.2}, prodScaling: 1.1, description: 'Ghosts with staplers.'}],
+                abilities: [{id: 'auditRival', name: 'Audit Rival', type: 'aggressive', cost: {existentialStamp: 150}, cooldownMs: 60000, strainFactor: 7, effect: (caster, target)=>{if(!target) return; addBuff({id: `audit_${target.id}`, replacesExisting: true, domainId: target.id, durationMs: 30000, customEffect: true, description: `${target.name} audited! Costs up 50%.`, onApply: (game, domainId)=>{ const tDomain = game.domains[domainId]; tDomain.generators.forEach(g=>g.costMultiplier=(g.costMultiplier||1)*1.5); Bus.emit('feedback:message',{message:`${target.name} audited! Costs up!`,type:'warning'}); updateDomainUICard(target.id);}, onEnd: (game, domainId)=>{ const tDomain = game.domains[domainId]; tDomain.generators.forEach(g=>g.costMultiplier=(g.costMultiplier||1)/1.5); Bus.emit('feedback:message',{message:`Audit for ${target.name} ended.`,type:'info'}); updateDomainUICard(target.id);}}); Bus.emit('feedback:message',{message:`Audit for ${target.name}!`,type:'success'});}, description: 'Increase rival\'s upgrade costs by 50%.', requiresTarget: true}]
+            });
+
+            defineDomain({
+                id: 'fractals', name: 'Fractal Friend Factory', color: '#F472B6', description: 'Forging self-similar companions in the Kaleidoscopic Forge.',
+                allLoreTexts: [
+                    "Runaway self‑similarity forged a workshop at Mandelbrot’s edge; patterns smelt patterns here.",
+                    "Tessellators invent Recursive Clay, folding on itself to produce smaller copies until gently observed.",
+                    "Möbius Cat named “Whisk∞rs” chases its own tail and generates a 1% click multiplier every loop.",
+                    "Factory overflows create a second‑order hallway—walking down it returns you younger by one click.",
+                    "Stolen matter reveals hidden Mirror Caches in rival Domains; claiming one grants bonus shards equal to 2× theft amount.",
+                    "Unlock Symmetry Hatchery where pets breed derivative pets, compounding shard income exponentially.",
+                    "Infinite fern grafted onto probability vines yields Phyllotactic Petals worth both Petals and Shards.",
+                    "Discover Negative‑Dimension Storage, doubling Shard cap and enabling offline gains during game‑close.",
+                    "Factory folds inside out, revealing Antifractals that neutralize hostile buffs once per minute.",
+                    "Patterns achieve sentience and vote to unionize; each pet now spawns a microscopic civil‑society that grants permanent +5% global click power."
+                ],
+                clickResource: { id: 'symmetryShard', name: 'Shards', baseAmount: 1 },
+                generators: [{id: 'fractalPet', name: 'Fractal Pet', baseCost: {symmetryShard: 25}, costScaling: 1.19, baseProd: {symmetryShard: 0.25}, prodScaling: 1.1, description: 'Self-similar critters.'}],
+                abilities: [{id: 'recursiveSwarm', name: 'Recursive Swarm', type: 'aggressive', cost: {symmetryShard: 180}, cooldownMs: 75000, strainFactor: 8, effect: (caster, target)=>{if(!target) return; const amountStolen = Game.getResource(target.clickResource.id)*0.10; Game.addResource(target.clickResource.id, -amountStolen); Game.addResource(caster.clickResource.id, amountStolen); Bus.emit('feedback:message',{message:`Swarm stole ${formatNumber(amountStolen)} ${target.clickResource.name} from ${target.name}!`,type:'success'});}, description: 'Steal 10% of rival\'s resource.', requiresTarget: true}]
+            });
+
+            defineDomain({
+                id: 'snackbar', name: 'Time-Traveling Snack Bar', color: '#FB923C', description: 'Serving chrono-burgers and temporal fries at the Chrono-Cantina.',
+                allLoreTexts: [
+                    "A tachyon‑scooter chef opens a food truck that parks at extinction events and music festivals alike.",
+                    "Install Temporal Deep‑Fryer—cooks food yesterday so it’s cooled by the time it’s served now.",
+                    "Truck returns from Late Cretaceous with a suspiciously large grease stain shaped like a velociraptor thumbs‑up.",
+                    "Add Chrono‑Condiments—ketchup that remembers being tomatoes next week, buffing Tips per click by 10%.",
+                    "Surge leaves behind Tip Receipts dated tomorrows; caching them grants a burst of offline earnings when the date arrives.",
+                    "Franchise opens in Renaissance Florence; Da Vinci sketches your menu, granting a creativity multiplier across all Domains.",
+                    "Serve Entropy Ramen—guests who reorder in another era refund 50% of Paradox Surge cooldown.",
+                    "Health inspectors from 3128 AD arrive; passing inspection unlocks Future‑Proof Realty, boosting building upgrades’ effectiveness.",
+                    "Timeline lawyers issue Causality Insurance, preventing the next resource loss effect entirely.",
+                    "Snack Bar attains Temporal Omnipresence—one truck exists at every timestamp, adding +1 global click per real‑time second logged in."
+                ],
+                clickResource: { id: 'chronoTip', name: 'Tips', baseAmount: 1 },
+                generators: [{id: 'eraFoodTruck', name: 'Era Food Truck', baseCost: {chronoTip: 30}, costScaling: 1.20, baseProd: {chronoTip: 0.3}, prodScaling: 1.1, description: 'Dinosaur grease stains.'}],
+                abilities: [{id: 'paradoxSurge', name: 'Paradox Surge', type: 'aggressive', cost: {chronoTip: 220}, cooldownMs: 90000, strainFactor: 9, effect: (caster, target)=>{if(!target) return; const currentAmount = Game.getResource(target.clickResource.id); const newAmount = currentAmount*0.10; Game.resources[target.clickResource.id]=newAmount; Bus.emit('resource:update',{resourceId: target.clickResource.id, amount: newAmount}); Bus.emit('feedback:message',{message:`Paradox Surge! ${target.name}'s ${target.clickResource.name} reverted to ${formatNumber(newAmount)}!`,type:'warning'});}, description: 'Revert rival\'s resource to 10%.', requiresTarget: true}]
+            });
+
+            defineDomain({
+                id: 'emotions', name: 'Emotion Mining Co.', color: '#818CF8', description: 'Drilling for raw feelings in the Sentient Stratum. Vibes are valuable.',
+                allLoreTexts: [
+                    "Empath‑savants tap the dream‑bedrock, unearthing raw feeling crystals older than language.",
+                    "Discover Regret Gas—inert alone, explosive when mixed with Hope Nuggets; miners wear mirrored helmets to deflect accidents.",
+                    "Reactors refine feelings into Vibe Alloy, a psychic metal that shapes itself to its owner’s mood.",
+                    "Mining depth reaches Subconscious Plateau, where archetypes roam like megafauna and occasionally drop rare Wonder Pelts.",
+                    "Field pacifies the Plateau; archetypes curl up like house cats, granting 2× passive production during its duration.",
+                    "Company issues Emotional Futures contracts; correctly guessing tomorrow’s global mood yields a 15% production windfall.",
+                    "Joy crystals resonate, creating Harmony Echoes that convert 5% of Echo income to Vibes automatically.",
+                    "Miners breach Nostalgia Vein—processing it lets you re‑roll one generator’s cost scaling per prestige.",
+                    "Release of bottled Dread spawns Courage Plumes; collecting them reduces Strain by 5 instantly.",
+                    "Stratum fully terraformed into a Psycho‑Crystal Garden: every future Collapse yields an extra global buff chosen at random."
+                ],
+                clickResource: { id: 'vibeOre', name: 'Vibes', baseAmount: 1 },
+                generators: [{id: 'empathyReactor', name: 'Empathy Reactor', baseCost: {vibeOre: 35}, costScaling: 1.21, baseProd: {vibeOre: 0.35}, prodScaling: 1.1, description: 'Terraforms psyche-planet.'}],
+                abilities: [{id: 'serenityField', name: 'Serenity Field', type: 'defensive', cost: {vibeOre: 250}, cooldownMs: 180000, strainFactor: 3, effect: (caster)=>{ addBuff({id: `serenityField_${caster.id}`, replacesExisting: true, domainId: caster.id, durationMs: 60000, affects: 'production', multiplier: 2.0, description: `${caster.name} protected! Production x2.`, onApply: ()=> Bus.emit('feedback:message',{message:`${caster.name} Serenity Field! Prod x2!`,type:'success'}), onEnd: ()=> Bus.emit('feedback:message',{message:`Serenity Field for ${caster.name} faded.`,type:'info'})});}, description: 'Boost own production by 100%.', requiresTarget: false}]
+            });
         }
         
         // --- STORYLINE DEFINITIONS ---
+
+        // Helper function to register lore events
+        function registerLore(domainId, level, triggerFn, oneTime = true) {
+            const domain = Game.domains[domainId];
+            if (!domain || !domain.allLoreTexts || level > domain.allLoreTexts.length) {
+                console.warn(`Lore registration failed: Domain ${domainId} or lore text for level ${level} not found.`);
+                return;
+            }
+            const lorem = domain.allLoreTexts[level - 1]; // 0-indexed array
+            const storyId = `${domainId}_lore_lvl${level}`;
+            const message = `[${domain.name} Lore Lvl ${level}] ${lorem}`;
+
+            addStoryEvent(
+                storyId,
+                triggerFn,
+                message,
+                oneTime,
+                (game) => { // onFireAction
+                    if (game.domains[domainId]) {
+                        game.domains[domainId].unlockedLoreLevel = Math.max(game.domains[domainId].unlockedLoreLevel || 0, level);
+                        Bus.emit('lore:unlocked', { domainId, level, newUnlockedLevel: game.domains[domainId].unlockedLoreLevel });
+                    }
+                }
+            );
+        }
+
         function defineStorylines() {
-            // ... (Existing storylines)
+            // Standard Story Events
             addStoryEvent('genesis', () => Game.t > 1000, "A faint hum... The Conflux awakens. You feel an urge to... click?");
-            addStoryEvent('firstPetalHundred', () => Game.getResource('probabilityPetal') >= 100, "Quantum Gardener: 'Each petal, a possibility.'");
-            // ... other existing story events ...
+            addStoryEvent('firstPetalHundred', () => Game.getResource('probabilityPetal') >= 100 && (Game.domains.gardeners?.unlockedLoreLevel || 0) < 2, "Quantum Gardener: 'Each petal, a possibility.'"); // Example of tying old story to new lore system
             addStoryEvent('allDomainsActive', () => Object.values(Game.domains).every(d => d.generators.some(g => g.level > 0)) && !storyEvents.find(e=>e.id==='allDomainsActive')?.fired, "All seven Domains hum with activity. The Conflux is truly alive!");
 
-            // Tutorial Related Story Hints (Layer 5)
-            addStoryEvent('tutorialIdleHint', 
+            // --- Multi-Level Lore Event Definitions ---
+            const getDomainLevel = (domainId) => (Game.domains[domainId]?.generators.reduce((s, g) => s + g.level, 0) || 0);
+
+            // 🌱 Quantum Gardeners Lore
+            registerLore('gardeners', 1, () => Game.getResource('probabilityPetal') > 0);
+            registerLore('gardeners', 2, () => Game.getResource('probabilityPetal') >= 100);
+            registerLore('gardeners', 3, () => Game.domains.gardeners?.generators.find(g => g.id === 'timelineBloomer')?.level >= 1);
+            registerLore('gardeners', 4, () => getDomainLevel('gardeners') >= 10);
+            registerLore('gardeners', 5, () => Game.storyFlags.gardeners_castCollapseCertaintyOnce === true);
+            registerLore('gardeners', 6, () => Game.domains.gardeners?.generators.find(g => g.id === 'timelineBloomer')?.level >= 25);
+            registerLore('gardeners', 7, () => getDomainLevel('gardeners') >= 25 && getDomainLevel('soundwaves') >= 25);
+            registerLore('gardeners', 8, () => getDomainLevel('gardeners') >= 50);
+            registerLore('gardeners', 9, () => Game.storyFlags.rivalsTargetedByAbilities.size >= 5);
+            registerLore('gardeners', 10, () => getDomainLevel('gardeners') >= 100);
+
+            // 🎵 Sentient Soundwaves Lore
+            registerLore('soundwaves', 1, () => Game.getResource('echoRoyalty') > 0);
+            registerLore('soundwaves', 2, () => Game.getResource('echoRoyalty') >= 100);
+            registerLore('soundwaves', 3, () => Game.domains.soundwaves?.generators.find(g => g.id === 'cosmicArtist')?.level >= 1);
+            registerLore('soundwaves', 4, () => getDomainLevel('soundwaves') >= 10);
+            registerLore('soundwaves', 5, () => Game.storyFlags.soundwaves_castDissonanceBurstOnce === true);
+            registerLore('soundwaves', 6, () => Game.domains.soundwaves?.generators.find(g => g.id === 'cosmicArtist')?.level >= 25);
+            registerLore('soundwaves', 7, () => getDomainLevel('soundwaves') >= 25 && getDomainLevel('emotions') >= 25);
+            registerLore('soundwaves', 8, () => getDomainLevel('soundwaves') >= 50);
+            registerLore('soundwaves', 9, () => Game.realityStrain / Game.maxRealityStrain >= 0.6);
+            registerLore('soundwaves', 10, () => getDomainLevel('soundwaves') >= 100);
+
+            // 🍲 Cosmic Soup Ladle Lore
+            registerLore('soup', 1, () => Game.getResource('flavorQuark') > 0);
+            registerLore('soup', 2, () => Game.getResource('flavorQuark') >= 1000);
+            registerLore('soup', 3, () => Game.domains.soup?.generators.find(g => g.id === 'primordialBroth')?.level >= 1);
+            registerLore('soup', 4, () => getDomainLevel('soup') >= 10);
+            registerLore('soup', 5, () => Game.storyFlags.soup_castBigSlurpOnce === true);
+            registerLore('soup', 6, () => Game.domains.soup?.generators.find(g => g.id === 'primordialBroth')?.level >= 25);
+            registerLore('soup', 7, () => getDomainLevel('soup') >= 25 && getDomainLevel('snackbar') >= 25);
+            registerLore('soup', 8, () => getDomainLevel('soup') >= 50);
+            registerLore('soup', 9, () => Game.storyFlags.soup_slurpsThisPrestige >= 3);
+            registerLore('soup', 10, () => getDomainLevel('soup') >= 100);
+
+            // 📑 Bureaucratic Afterlives Lore
+            registerLore('afterlives', 1, () => Game.getResource('existentialStamp') > 0);
+            registerLore('afterlives', 2, () => Game.getResource('existentialStamp') >= 100);
+            registerLore('afterlives', 3, () => Game.domains.afterlives?.generators.find(g => g.id === 'soulClerk')?.level >= 1);
+            registerLore('afterlives', 4, () => getDomainLevel('afterlives') >= 10);
+            registerLore('afterlives', 5, () => Game.storyFlags.afterlives_castAuditRivalOnce === true);
+            registerLore('afterlives', 6, () => Game.domains.afterlives?.generators.find(g => g.id === 'soulClerk')?.level >= 25);
+            registerLore('afterlives', 7, () => getDomainLevel('afterlives') >= 25 && getDomainLevel('gardeners') >= 25);
+            registerLore('afterlives', 8, () => getDomainLevel('afterlives') >= 50);
+            registerLore('afterlives', 9, () => Game.storyFlags.afterlives_auditedRivals.size >= 5);
+            registerLore('afterlives', 10, () => getDomainLevel('afterlives') >= 100);
+
+            // 🔷 Fractal Friend Factory Lore
+            registerLore('fractals', 1, () => Game.getResource('symmetryShard') > 0);
+            registerLore('fractals', 2, () => Game.getResource('symmetryShard') >= 100);
+            registerLore('fractals', 3, () => Game.domains.fractals?.generators.find(g => g.id === 'fractalPet')?.level >= 1);
+            registerLore('fractals', 4, () => getDomainLevel('fractals') >= 10);
+            registerLore('fractals', 5, () => Game.storyFlags.fractals_castRecursiveSwarmOnce === true);
+            registerLore('fractals', 6, () => Game.domains.fractals?.generators.find(g => g.id === 'fractalPet')?.level >= 25);
+            registerLore('fractals', 7, () => getDomainLevel('fractals') >= 25 && getDomainLevel('gardeners') >= 25);
+            registerLore('fractals', 8, () => getDomainLevel('fractals') >= 50);
+            registerLore('fractals', 9, () => Game.realityStrain / Game.maxRealityStrain >= 0.7);
+            registerLore('fractals', 10, () => getDomainLevel('fractals') >= 100);
+
+            // ⏰ Time-Traveling Snack Bar Lore
+            registerLore('snackbar', 1, () => Game.getResource('chronoTip') > 0);
+            registerLore('snackbar', 2, () => Game.getResource('chronoTip') >= 100);
+            registerLore('snackbar', 3, () => Game.domains.snackbar?.generators.find(g => g.id === 'eraFoodTruck')?.level >= 1);
+            registerLore('snackbar', 4, () => getDomainLevel('snackbar') >= 10);
+            registerLore('snackbar', 5, () => Game.storyFlags.snackbar_castParadoxSurgeOnce === true);
+            registerLore('snackbar', 6, () => Game.domains.snackbar?.generators.find(g => g.id === 'eraFoodTruck')?.level >= 25);
+            registerLore('snackbar', 7, () => getDomainLevel('snackbar') >= 25 && getDomainLevel('soup') >= 25);
+            registerLore('snackbar', 8, () => getDomainLevel('snackbar') >= 50);
+            registerLore('snackbar', 9, () => Game.storyFlags.snackbar_surgesThisPrestige >= 3);
+            registerLore('snackbar', 10, () => getDomainLevel('snackbar') >= 100);
+
+            // 💠 Emotion Mining Co. Lore
+            registerLore('emotions', 1, () => Game.getResource('vibeOre') > 0);
+            registerLore('emotions', 2, () => Game.getResource('vibeOre') >= 100);
+            registerLore('emotions', 3, () => Game.domains.emotions?.generators.find(g => g.id === 'empathyReactor')?.level >= 1);
+            registerLore('emotions', 4, () => getDomainLevel('emotions') >= 10);
+            registerLore('emotions', 5, () => Game.storyFlags.emotions_castSerenityFieldOnce === true);
+            registerLore('emotions', 6, () => Game.domains.emotions?.generators.find(g => g.id === 'empathyReactor')?.level >= 25);
+            registerLore('emotions', 7, () => getDomainLevel('emotions') >= 25 && getDomainLevel('soundwaves') >= 25);
+            registerLore('emotions', 8, () => getDomainLevel('emotions') >= 50);
+            registerLore('emotions', 9, () => Game.realityStrain / Game.maxRealityStrain >= 0.9);
+            registerLore('emotions', 10, () => getDomainLevel('emotions') >= 100);
+
+            // Tutorial Related Story Hints
+            addStoryEvent('tutorialIdleHint',
                 () => Game.t > 120000 && Game.prestigeCount === 0 && Game.domains.gardeners?.generators.find(g=>g.id==='timelineBloomer')?.level > 0 && !localStorage.getItem('tutorialFullyCompleted_v1'),
                 "Hint: Your Generators work even when you're not actively clicking. Check back later to see your earnings!", 
                 false // Repeatable until tutorial is done
