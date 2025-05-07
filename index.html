@@ -328,6 +328,67 @@
         visibility: visible;
         opacity: 1;
       }
+
+      /* Trophy Unlock Modal Styles */
+      .trophy-unlock-modal-overlay {
+        /* Uses .modal-overlay for base, but we can add specifics */
+        z-index: 1050; /* Higher than other modals if needed */
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+      }
+      .trophy-unlock-modal-overlay.visible {
+        opacity: 1;
+      }
+      .trophy-unlock-modal-content {
+        background-color: #111827; /* bg-gray-900, darker for drama */
+        padding: 2rem; /* p-8 */
+        border-radius: 0.75rem; /* rounded-xl */
+        max-width: 36rem; /* max-w-lg */
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 0 30px rgba(129, 140, 248, 0.5); /* shadow-indigo-400/50, more dramatic */
+        border: 2px solid #818cf8; /* border-indigo-400 */
+        position: relative; /* For close button positioning */
+        transform: scale(0.95);
+        transition: transform 0.3s ease-in-out;
+      }
+      .trophy-unlock-modal-overlay.visible .trophy-unlock-modal-content {
+         transform: scale(1);
+      }
+      .trophy-unlock-title {
+        font-family: "Press Start 2P", cursive;
+        color: #fcd34d; /* amber-300 */
+        font-size: 1.75rem; /* text-2xl or 3xl */
+        margin-bottom: 1.5rem;
+        text-shadow: 2px 2px #000;
+      }
+      .trophy-unlock-modal-content img {
+        max-width: 200px; /* Control image size */
+        max-height: 200px;
+        object-fit: contain;
+        border-radius: 0.5rem; /* rounded-lg */
+        margin: 0 auto 1.5rem auto; /* Center image and add space below */
+        border: 3px solid #a5b4fc; /* indigo-300 */
+        background-color: #1f2937; /* bg-gray-800 for contrast if image has transparency */
+      }
+      .trophy-unlock-modal-content h3 { /* Trophy Name */
+        font-family: "Press Start 2P", cursive;
+        color: #a5b4fc; /* indigo-300 */
+        font-size: 1.25rem; /* text-xl */
+        margin-bottom: 0.75rem;
+      }
+      .trophy-unlock-modal-content p { /* Trophy Story */
+        color: #e5e7eb; /* text-gray-200 */
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+      }
+      /* Close button for trophy unlock modal can reuse .modal-close-button if positioned correctly */
+      .trophy-unlock-modal-content .modal-close-button {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.75rem;
+      }
     </style>
   </head>
   <body class="min-h-screen p-2 sm:p-4 md:p-6">
@@ -511,6 +572,17 @@
     </div>
 
     <div id="coach-mark-overlay-container"></div>
+
+    <div id="trophy-unlock-modal" class="modal-overlay hidden trophy-unlock-modal-overlay">
+      <div class="trophy-unlock-modal-content">
+        <button id="close-trophy-unlock-modal" class="modal-close-button">&times;</button>
+        <h2 id="trophy-unlock-title" class="trophy-unlock-title">Gallery Image Unlocked!</h2>
+        <img id="trophy-unlock-image" src="" alt="Unlocked Trophy Image" />
+        <h3 id="trophy-unlock-name">Trophy Name</h3>
+        <p id="trophy-unlock-story">Trophy story will appear here.</p>
+        <button id="confirm-trophy-unlock-modal" class="btn btn-primary font-arcade">Awesome!</button>
+      </div>
+    </div>
 
     <script>
       // --- 1. EVENT BUS ---
@@ -2120,7 +2192,60 @@
           fontClass: "font-arcade text-lg", // Make it stand out
         });
         // The gallery is re-rendered by checkAndUnlockTrophies itself
+        // Bus.emit("feedback:message", { // This will be replaced by the modal
+        //   message: `Gallery Image Unlocked: ${trophy.name}!`,
+        //   type: "success",
+        //   fontClass: "font-arcade text-lg",
+        // });
+        showTrophyUnlockModal(trophy);
       });
+
+      // --- TROPHY UNLOCK MODAL ---
+      const trophyUnlockModal = document.getElementById("trophy-unlock-modal");
+      const closeTrophyUnlockModalButton = document.getElementById("close-trophy-unlock-modal");
+      const confirmTrophyUnlockModalButton = document.getElementById("confirm-trophy-unlock-modal");
+      const trophyUnlockImage = document.getElementById("trophy-unlock-image");
+      const trophyUnlockName = document.getElementById("trophy-unlock-name");
+      const trophyUnlockStory = document.getElementById("trophy-unlock-story");
+
+      function showTrophyUnlockModal(trophy) {
+        if (!trophyUnlockModal || !trophy) return;
+
+        trophyUnlockImage.src = trophy.imagePath;
+        trophyUnlockImage.alt = trophy.name;
+        trophyUnlockName.textContent = trophy.name;
+        trophyUnlockStory.textContent = trophy.story;
+        
+        trophyUnlockModal.classList.remove("hidden");
+        // Trigger reflow for transition
+        void trophyUnlockModal.offsetWidth; 
+        trophyUnlockModal.classList.add("visible");
+      }
+
+      function hideTrophyUnlockModal() {
+        if (!trophyUnlockModal) return;
+        trophyUnlockModal.classList.remove("visible");
+        // Listen for transition end to add 'hidden' class
+        // Or simply use a timeout if transitions are consistent
+         setTimeout(() => {
+            trophyUnlockModal.classList.add("hidden");
+        }, 300); // Match CSS transition duration
+      }
+
+      if (closeTrophyUnlockModalButton) {
+        closeTrophyUnlockModalButton.addEventListener("click", hideTrophyUnlockModal);
+      }
+      if (confirmTrophyUnlockModalButton) {
+        confirmTrophyUnlockModalButton.addEventListener("click", hideTrophyUnlockModal);
+      }
+      if (trophyUnlockModal) {
+        trophyUnlockModal.addEventListener("click", (e) => {
+          if (e.target === trophyUnlockModal) { // Click on overlay itself
+            hideTrophyUnlockModal();
+          }
+        });
+      }
+
 
       // --- LORE MODAL ---
       // Unchanged
