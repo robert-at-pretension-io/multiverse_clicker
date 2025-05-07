@@ -1869,24 +1869,21 @@
           trophyEl.classList.add("locked");
         }
 
-        const img = document.createElement("img");
-        if (isUnlocked) {
-          img.src = trophy.imagePath;
-          img.alt = trophy.name;
-        } else {
-          img.alt = "Locked Trophy";
-          // The ::after pseudo-element will show the '?'
-        }
-
         const tooltipText = document.createElement("span");
         tooltipText.className = "trophy-tooltiptext"; // Use the new specific class
+
         if (isUnlocked) {
+          const img = document.createElement("img");
+          img.src = trophy.imagePath;
+          img.alt = trophy.name;
+          trophyEl.appendChild(img);
           tooltipText.innerHTML = `<strong>${trophy.name}</strong>${trophy.story}`;
         } else {
+          // For locked trophies, the ::after pseudo-element shows the '?'
+          // No img tag is needed.
           tooltipText.innerHTML = `<strong>Locked</strong>Remain observant. The Conflux will reveal its secrets in time.`;
         }
 
-        trophyEl.appendChild(img);
         trophyEl.appendChild(tooltipText);
         return trophyEl;
       }
