@@ -26,9 +26,12 @@ import pathlib
 import argparse
 import sys
 import time
+import os
 
 import vertexai
 from vertexai.preview.vision_models import ImageGenerationModel
+from google.api_core.exceptions import ResourceExhausted
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 
 def parse_args():
@@ -84,6 +87,32 @@ def main():
     vertexai.init(project=args.project, location=args.location)
     model = ImageGenerationModel.from_pretrained(args.model)
 
+    @retry(
+        wait=wait_exponential(multiplier=1, min=4, max=60),
+        stop=stop_after_attempt(5),
+        retry=lambda retry_state: isinstance(retry_state.outcome.exception(), ResourceExhausted),
+        reraise=True,
+    )
+    def generate_and_save_image_with_retry(
+        current_model, current_prompt, num_images, aspect_ratio, language, safety_filter_level, output_path_base, entry_filename
+    ):
+        sys.stderr.write(f"[+] Attempting to generate '{entry_filename}'...\n")
+        images = current_model.generate_images(
+            prompt=current_prompt,
+            number_of_images=num_images,
+            aspect_ratio=aspect_ratio,
+            language=language,
+            safety_filter_level=safety_filter_level,
+        )
+        for i, img in enumerate(images):
+            out_path_final = output_path_base
+            if num_images > 1:
+                stem = output_path_base.stem
+                suffix = output_path_base.suffix or ".png"
+                out_path_final = out_dir / f"{stem}_{i}{suffix}"
+            img.save(location=str(out_path_final), include_generation_parameters=False)
+            sys.stderr.write(f"[+] Saved '{out_path_final}'\n")
+
     for entry in prompt_entries:
         prompt = entry.get("prompt")
         filename = entry.get("filename")
@@ -91,27 +120,46 @@ def main():
             sys.stderr.write(f"Skipping malformed entry: {entry}\n")
             continue
 
+        # Check if file(s) already exist
+        all_files_exist = True
+        if args.n == 1:
+            if not (out_dir / filename).exists():
+                all_files_exist = False
+        else:
+            for i in range(args.n):
+                stem = pathlib.Path(filename).stem
+                suffix = pathlib.Path(filename).suffix or ".png"
+                potential_path = out_dir / f"{stem}_{i}{suffix}"
+                if not potential_path.exists():
+                    all_files_exist = False
+                    break
+        
+        if all_files_exist:
+            sys.stderr.write(f"[*] Skipping '{filename}' as output file(s) already exist.\n")
+            continue
+
         try:
-            sys.stderr.write(f"[+] Generating '{filename}'...\n")
-            images = model.generate_images(
-                prompt=prompt,
-                number_of_images=args.n,
-                aspect_ratio=args.aspect_ratio,
-                language=args.language,
-                safety_filter_level=args.safety_filter_level,
+            base_output_path = out_dir / filename
+            generate_and_save_image_with_retry(
+                model,
+                prompt,
+                args.n,
+                args.aspect_ratio,
+                args.language,
+                args.safety_filter_level,
+                base_output_path,
+                filename
             )
-            for i, img in enumerate(images):
-                out_path = out_dir / filename
-                if args.n > 1:
-                    stem = out_path.stem
-                    suffix = out_path.suffix or ".png"
-                    out_path = out_dir / f"{stem}_{i}{suffix}"
-                img.save(location=str(out_path), include_generation_parameters=False)
+        except ResourceExhausted as exc:
+            sys.stderr.write(
+                f"[!] Quota error generating '{filename}' after retries: {exc}\n"
+            )
+            continue
         except Exception as exc:
             sys.stderr.write(f"[!] Error generating '{filename}': {exc}\n")
             continue
 
-        time.sleep(0.4)  # gentle pacing to avoid quota spikes
+        # time.sleep(0.4) # Replaced by tenacity's wait logic
 
 
 if __name__ == "__main__":
