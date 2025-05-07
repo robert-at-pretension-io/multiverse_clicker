@@ -394,12 +394,26 @@
   <body class="min-h-screen p-2 sm:p-4 md:p-6">
     <div class="container mx-auto max-w-7xl">
       <header class="mb-6 text-center relative">
-        <button
-          id="help-button"
-          class="btn btn-secondary absolute top-0 right-0 m-1 sm:m-2 text-sm font-arcade"
-        >
-          Help (?)
-        </button>
+        <div class="absolute top-0 right-0 m-1 sm:m-2 flex space-x-2">
+          <button
+            id="save-game-button"
+            class="btn btn-secondary text-sm font-arcade"
+          >
+            Save
+          </button>
+          <button
+            id="load-game-button"
+            class="btn btn-secondary text-sm font-arcade"
+          >
+            Load
+          </button>
+          <button
+            id="help-button"
+            class="btn btn-secondary text-sm font-arcade"
+          >
+            Help (?)
+          </button>
+        </div>
         <h1
           class="text-3xl sm:text-4xl md:text-5xl font-arcade text-indigo-400"
         >
@@ -1063,6 +1077,149 @@
             message: "Reality is not strained enough to collapse!",
             type: "warning",
           });
+        }
+      }
+
+      // --- SAVE/LOAD SYSTEM ---
+      const SAVE_KEY = "idleUniverseSave_v1";
+
+      function saveGame() {
+        const saveState = {
+          t: Game.t,
+          domains: {},
+          resources: { ...Game.resources },
+          entropyTokens: Game.entropyTokens,
+          realityStrain: Game.realityStrain,
+          maxRealityStrain: Game.maxRealityStrain,
+          prestigeCount: Game.prestigeCount,
+          storyFlags: {
+            ...Game.storyFlags,
+            rivalsTargetedByAbilities: Array.from(Game.storyFlags.rivalsTargetedByAbilities),
+            afterlives_auditedRivals: Array.from(Game.storyFlags.afterlives_auditedRivals),
+          },
+          unlockedTrophies: Array.from(Game.unlockedTrophies),
+          tutorialFlags: { ...Game.tutorialFlags }, // Save persistent tutorial flags
+          // Do not save: lastUpdate, buffs, activeTargeting (these are transient or re-initialized)
+        };
+
+        Object.keys(Game.domains).forEach(domainId => {
+          const domain = Game.domains[domainId];
+          saveState.domains[domainId] = {
+            level: domain.level,
+            generators: domain.generators.map(g => ({
+              id: g.id,
+              level: g.level,
+              currentCost: { ...g.currentCost },
+              costMultiplier: g.costMultiplier, // Save this if it exists
+            })),
+            abilities: domain.abilities.map(a => ({
+              id: a.id,
+              nextUse: a.nextUse,
+            })),
+            unlockedLoreLevel: domain.unlockedLoreLevel,
+          };
+        });
+
+        try {
+          localStorage.setItem(SAVE_KEY, JSON.stringify(saveState));
+          Bus.emit("feedback:message", { message: "Game Saved!", type: "success" });
+        } catch (e) {
+          console.error("Error saving game:", e);
+          Bus.emit("feedback:message", { message: "Failed to save game. Storage might be full.", type: "error" });
+        }
+      }
+
+      function loadGame() {
+        const savedDataString = localStorage.getItem(SAVE_KEY);
+        if (!savedDataString) {
+          Bus.emit("feedback:message", { message: "No save game found.", type: "info" });
+          return false;
+        }
+
+        try {
+          const loadedState = JSON.parse(savedDataString);
+
+          Game.t = loadedState.t || 0;
+          Game.resources = loadedState.resources || {};
+          Game.entropyTokens = loadedState.entropyTokens || 0;
+          Game.realityStrain = loadedState.realityStrain || 0;
+          Game.maxRealityStrain = loadedState.maxRealityStrain || 100;
+          Game.prestigeCount = loadedState.prestigeCount || 0;
+          
+          // Story Flags
+          if (loadedState.storyFlags) {
+            Game.storyFlags = {
+                ...Game.storyFlags, // Keep defaults for any new flags
+                ...loadedState.storyFlags,
+                rivalsTargetedByAbilities: new Set(loadedState.storyFlags.rivalsTargetedByAbilities || []),
+                afterlives_auditedRivals: new Set(loadedState.storyFlags.afterlives_auditedRivals || []),
+            };
+          }
+
+          Game.unlockedTrophies = new Set(loadedState.unlockedTrophies || []);
+          Game.tutorialFlags = loadedState.tutorialFlags || {};
+
+          // Domains: Iterate through defined domains and apply saved state
+          Object.keys(Game.domains).forEach(domainId => {
+            const currentDomain = Game.domains[domainId];
+            const savedDomain = loadedState.domains?.[domainId];
+
+            if (savedDomain) {
+              currentDomain.level = savedDomain.level || 0;
+              currentDomain.unlockedLoreLevel = savedDomain.unlockedLoreLevel || 0;
+
+              currentDomain.generators.forEach(currentGen => {
+                const savedGen = savedDomain.generators?.find(sg => sg.id === currentGen.id);
+                if (savedGen) {
+                  currentGen.level = savedGen.level || 0;
+                  currentGen.currentCost = savedGen.currentCost ? { ...currentGen.baseCost, ...savedGen.currentCost } : { ...currentGen.baseCost };
+                  // Recalculate cost for safety if not perfectly saved, or trust saved cost
+                   if (currentGen.level > 0 && (!savedGen.currentCost || Object.keys(savedGen.currentCost).length === 0)) {
+                     Object.keys(currentGen.baseCost).forEach((resId) => {
+                        currentGen.currentCost[resId] = Math.floor(
+                            currentGen.baseCost[resId] * Math.pow(currentGen.costScaling, currentGen.level)
+                        );
+                     });
+                   }
+                   if (savedGen.costMultiplier) {
+                       currentGen.costMultiplier = savedGen.costMultiplier;
+                   } else {
+                       delete currentGen.costMultiplier;
+                   }
+                }
+              });
+
+              currentDomain.abilities.forEach(currentAb => {
+                const savedAb = savedDomain.abilities?.find(sa => sa.id === currentAb.id);
+                if (savedAb) {
+                  currentAb.nextUse = savedAb.nextUse || 0;
+                }
+              });
+            }
+          });
+          
+          // Reset transient states
+          Game.lastUpdate = Date.now();
+          Game.buffs = [];
+          Game.activeTargeting = null;
+          storyLogInitialized = false; // Force story log re-init
+          const storyLog = document.getElementById("story-log");
+          if (storyLog) storyLog.innerHTML = '<p class="text-gray-500">Game loaded. Echoes resume...</p>';
+
+
+          renderAllDomains();
+          renderAllTrophies();
+          updateGlobalStatsUI();
+          checkStoryEvents(); // Re-evaluate story events based on loaded state
+          TutorialManager.checkState(); // Re-evaluate tutorial state
+
+          Bus.emit("feedback:message", { message: "Game Loaded Successfully!", type: "success" });
+          return true;
+        } catch (e) {
+          console.error("Error loading game:", e);
+          Bus.emit("feedback:message", { message: "Failed to load game. Save data might be corrupted.", type: "error" });
+          localStorage.removeItem(SAVE_KEY); // Clear corrupted save
+          return false;
         }
       }
 
@@ -2186,18 +2343,9 @@
         }, 500);
       });
       Bus.on("trophy:unlocked", (trophy) => {
-        Bus.emit("feedback:message", {
-          message: `Gallery Image Unlocked: ${trophy.name}!`,
-          type: "success",
-          fontClass: "font-arcade text-lg", // Make it stand out
-        });
         // The gallery is re-rendered by checkAndUnlockTrophies itself
-        // Bus.emit("feedback:message", { // This will be replaced by the modal
-        //   message: `Gallery Image Unlocked: ${trophy.name}!`,
-        //   type: "success",
-        //   fontClass: "font-arcade text-lg",
-        // });
-        showTrophyUnlockModal(trophy);
+        showTrophyUnlockModal(trophy); 
+        // Removed the Bus.emit("feedback:message", ...) as the modal is more prominent
       });
 
       // --- TROPHY UNLOCK MODAL ---
@@ -3240,13 +3388,25 @@
 
       // --- INITIALIZATION ---
       window.onload = () => {
-        defineAllDomains();
-        defineStorylines(); // Defines TROPHIES internally if moved, but it's global now
-        renderAllDomains();
-        renderAllTrophies(); // Initial render of the trophy gallery
-        updateGlobalStatsUI();
-        if (prestigeButton)
-          prestigeButton.addEventListener("click", attemptPrestige);
+        defineAllDomains(); // Define structures first
+        defineStorylines(); 
+        
+        const gameWasLoaded = loadGame(); // Attempt to load saved game
+
+        if (!gameWasLoaded) {
+          // If no game was loaded, initialize fresh state aspects
+          renderAllDomains(); // Render with initial state
+          renderAllTrophies();
+          updateGlobalStatsUI();
+        }
+        // If gameWasLoaded, loadGame() already called render/update functions.
+
+        if (prestigeButton) prestigeButton.addEventListener("click", attemptPrestige);
+        const saveButton = document.getElementById("save-game-button");
+        if (saveButton) saveButton.addEventListener("click", saveGame);
+        const loadButton = document.getElementById("load-game-button");
+        if (loadButton) loadButton.addEventListener("click", loadGame);
+
 
         // Quick-Start Tagline (Layer 1)
         if (quickStartTagline) {
