@@ -1624,6 +1624,7 @@
           if (!Game.unlockedTrophies.has(trophy.id) && trophy.unlockCondition(Game)) {
             Game.unlockedTrophies.add(trophy.id);
             Bus.emit("trophy:unlocked", trophy);
+            saveGame(); // Auto-save when a trophy is unlocked
             newUnlockOccurred = true;
           }
         });
