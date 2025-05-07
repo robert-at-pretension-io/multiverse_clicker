@@ -151,12 +151,14 @@
         color: white;
         font-size: 1.5rem;
       }
-      .domain-card.targetable { /* Style for when a domain is a valid target */
+      .domain-card.targetable {
+        /* Style for when a domain is a valid target */
         outline: 2px solid #fbbf24; /* amber-400 - Persistent outline */
         cursor: crosshair;
         /* opacity-75 is applied via JS, which is fine */
       }
-      .domain-card.targetable:hover { /* Optional: slightly different hover style if needed */
+      .domain-card.targetable:hover {
+        /* Optional: slightly different hover style if needed */
         outline-width: 3px; /* Example: thicker outline on hover */
       }
       .stat-bar {
@@ -295,7 +297,7 @@
         filter: grayscale(100%) opacity(0.3);
       }
       .trophy-item.locked::after {
-        content: '?';
+        content: "?";
         position: absolute;
         font-size: 2.5rem; /* Larger '?' */
         font-family: "Press Start 2P", cursive; /* Consistent font */
@@ -320,7 +322,7 @@
         transition: opacity 0.3s;
         font-size: 0.8rem; /* Slightly larger text */
         line-height: 1.4;
-        box-shadow: 0 3px 12px rgba(0,0,0,0.6);
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.6);
         pointer-events: none; /* Allow hover over image beneath */
       }
       .trophy-item .trophy-tooltiptext strong {
@@ -357,7 +359,7 @@
         transition: transform 0.3s ease-in-out;
       }
       .trophy-unlock-modal-overlay.visible .trophy-unlock-modal-content {
-         transform: scale(1);
+        transform: scale(1);
       }
       .trophy-unlock-title {
         font-family: "Press Start 2P", cursive;
@@ -375,13 +377,15 @@
         border: 3px solid #a5b4fc; /* indigo-300 */
         background-color: #1f2937; /* bg-gray-800 for contrast if image has transparency */
       }
-      .trophy-unlock-modal-content h3 { /* Trophy Name */
+      .trophy-unlock-modal-content h3 {
+        /* Trophy Name */
         font-family: "Press Start 2P", cursive;
         color: #a5b4fc; /* indigo-300 */
         font-size: 1.25rem; /* text-xl */
         margin-bottom: 0.75rem;
       }
-      .trophy-unlock-modal-content p { /* Trophy Story */
+      .trophy-unlock-modal-content p {
+        /* Trophy Story */
         color: #e5e7eb; /* text-gray-200 */
         font-size: 0.95rem;
         line-height: 1.6;
@@ -591,14 +595,26 @@
 
     <div id="coach-mark-overlay-container"></div>
 
-    <div id="trophy-unlock-modal" class="modal-overlay hidden trophy-unlock-modal-overlay">
+    <div
+      id="trophy-unlock-modal"
+      class="modal-overlay hidden trophy-unlock-modal-overlay"
+    >
       <div class="trophy-unlock-modal-content">
-        <button id="close-trophy-unlock-modal" class="modal-close-button">&times;</button>
-        <h2 id="trophy-unlock-title" class="trophy-unlock-title">Gallery Image Unlocked!</h2>
+        <button id="close-trophy-unlock-modal" class="modal-close-button">
+          &times;
+        </button>
+        <h2 id="trophy-unlock-title" class="trophy-unlock-title">
+          Gallery Image Unlocked!
+        </h2>
         <img id="trophy-unlock-image" src="" alt="Unlocked Trophy Image" />
         <h3 id="trophy-unlock-name">Trophy Name</h3>
         <p id="trophy-unlock-story">Trophy story will appear here.</p>
-        <button id="confirm-trophy-unlock-modal" class="btn btn-primary font-arcade">Awesome!</button>
+        <button
+          id="confirm-trophy-unlock-modal"
+          class="btn btn-primary font-arcade"
+        >
+          Awesome!
+        </button>
       </div>
     </div>
 
@@ -1074,11 +1090,11 @@
           storyEvents.forEach((ev) => {
             // For lore events, they are typically oneTime. If any non-lore story events are repeatable per prestige:
             if (!ev.oneTime && !ev.id.includes("_lore_lvl")) {
-                 ev.fired = false;
-                 // Also update persistent state:
-                 if (Game.storyFlags.storyEventStates[ev.id]) {
-                    Game.storyFlags.storyEventStates[ev.id].fired = false;
-                 }
+              ev.fired = false;
+              // Also update persistent state:
+              if (Game.storyFlags.storyEventStates[ev.id]) {
+                Game.storyFlags.storyEventStates[ev.id].fired = false;
+              }
             }
           });
           storyLogInitialized = false;
@@ -1122,25 +1138,29 @@
           prestigeCount: Game.prestigeCount,
           storyFlags: {
             ...Game.storyFlags,
-            rivalsTargetedByAbilities: Array.from(Game.storyFlags.rivalsTargetedByAbilities),
-            afterlives_auditedRivals: Array.from(Game.storyFlags.afterlives_auditedRivals),
+            rivalsTargetedByAbilities: Array.from(
+              Game.storyFlags.rivalsTargetedByAbilities
+            ),
+            afterlives_auditedRivals: Array.from(
+              Game.storyFlags.afterlives_auditedRivals
+            ),
           },
           unlockedTrophies: Array.from(Game.unlockedTrophies),
           tutorialFlags: { ...Game.tutorialFlags }, // Save persistent tutorial flags
           // Do not save: lastUpdate, buffs, activeTargeting (these are transient or re-initialized)
         };
 
-        Object.keys(Game.domains).forEach(domainId => {
+        Object.keys(Game.domains).forEach((domainId) => {
           const domain = Game.domains[domainId];
           saveState.domains[domainId] = {
             level: domain.level,
-            generators: domain.generators.map(g => ({
+            generators: domain.generators.map((g) => ({
               id: g.id,
               level: g.level,
               currentCost: { ...g.currentCost },
               costMultiplier: g.costMultiplier, // Save this if it exists
             })),
-            abilities: domain.abilities.map(a => ({
+            abilities: domain.abilities.map((a) => ({
               id: a.id,
               nextUse: a.nextUse,
             })),
@@ -1150,17 +1170,26 @@
 
         try {
           localStorage.setItem(SAVE_KEY, JSON.stringify(saveState));
-          Bus.emit("feedback:message", { message: "Game Saved!", type: "success" });
+          Bus.emit("feedback:message", {
+            message: "Game Saved!",
+            type: "success",
+          });
         } catch (e) {
           console.error("Error saving game:", e);
-          Bus.emit("feedback:message", { message: "Failed to save game. Storage might be full.", type: "error" });
+          Bus.emit("feedback:message", {
+            message: "Failed to save game. Storage might be full.",
+            type: "error",
+          });
         }
       }
 
       function loadGame() {
         const savedDataString = localStorage.getItem(SAVE_KEY);
         if (!savedDataString) {
-          Bus.emit("feedback:message", { message: "No save game found.", type: "info" });
+          Bus.emit("feedback:message", {
+            message: "No save game found.",
+            type: "info",
+          });
           return false;
         }
 
@@ -1173,14 +1202,18 @@
           Game.realityStrain = loadedState.realityStrain || 0;
           Game.maxRealityStrain = loadedState.maxRealityStrain || 100;
           Game.prestigeCount = loadedState.prestigeCount || 0;
-          
+
           // Story Flags
           if (loadedState.storyFlags) {
             Game.storyFlags = {
-                ...Game.storyFlags, // Keep defaults for any new flags
-                ...loadedState.storyFlags,
-                rivalsTargetedByAbilities: new Set(loadedState.storyFlags.rivalsTargetedByAbilities || []),
-                afterlives_auditedRivals: new Set(loadedState.storyFlags.afterlives_auditedRivals || []),
+              ...Game.storyFlags, // Keep defaults for any new flags
+              ...loadedState.storyFlags,
+              rivalsTargetedByAbilities: new Set(
+                loadedState.storyFlags.rivalsTargetedByAbilities || []
+              ),
+              afterlives_auditedRivals: new Set(
+                loadedState.storyFlags.afterlives_auditedRivals || []
+              ),
             };
           }
 
@@ -1188,52 +1221,65 @@
           Game.tutorialFlags = loadedState.tutorialFlags || {};
 
           // Domains: Iterate through defined domains and apply saved state
-          Object.keys(Game.domains).forEach(domainId => {
+          Object.keys(Game.domains).forEach((domainId) => {
             const currentDomain = Game.domains[domainId];
             const savedDomain = loadedState.domains?.[domainId];
 
             if (savedDomain) {
               currentDomain.level = savedDomain.level || 0;
-              currentDomain.unlockedLoreLevel = savedDomain.unlockedLoreLevel || 0;
+              currentDomain.unlockedLoreLevel =
+                savedDomain.unlockedLoreLevel || 0;
 
-              currentDomain.generators.forEach(currentGen => {
-                const savedGen = savedDomain.generators?.find(sg => sg.id === currentGen.id);
+              currentDomain.generators.forEach((currentGen) => {
+                const savedGen = savedDomain.generators?.find(
+                  (sg) => sg.id === currentGen.id
+                );
                 if (savedGen) {
                   currentGen.level = savedGen.level || 0;
-                  currentGen.currentCost = savedGen.currentCost ? { ...currentGen.baseCost, ...savedGen.currentCost } : { ...currentGen.baseCost };
+                  currentGen.currentCost = savedGen.currentCost
+                    ? { ...currentGen.baseCost, ...savedGen.currentCost }
+                    : { ...currentGen.baseCost };
                   // Recalculate cost for safety if not perfectly saved, or trust saved cost
-                   if (currentGen.level > 0 && (!savedGen.currentCost || Object.keys(savedGen.currentCost).length === 0)) {
-                     Object.keys(currentGen.baseCost).forEach((resId) => {
-                        currentGen.currentCost[resId] = Math.floor(
-                            currentGen.baseCost[resId] * Math.pow(currentGen.costScaling, currentGen.level)
-                        );
-                     });
-                   }
-                   if (savedGen.costMultiplier) {
-                       currentGen.costMultiplier = savedGen.costMultiplier;
-                   } else {
-                       delete currentGen.costMultiplier;
-                   }
+                  if (
+                    currentGen.level > 0 &&
+                    (!savedGen.currentCost ||
+                      Object.keys(savedGen.currentCost).length === 0)
+                  ) {
+                    Object.keys(currentGen.baseCost).forEach((resId) => {
+                      currentGen.currentCost[resId] = Math.floor(
+                        currentGen.baseCost[resId] *
+                          Math.pow(currentGen.costScaling, currentGen.level)
+                      );
+                    });
+                  }
+                  if (savedGen.costMultiplier) {
+                    currentGen.costMultiplier = savedGen.costMultiplier;
+                  } else {
+                    delete currentGen.costMultiplier;
+                  }
                 }
               });
 
-              currentDomain.abilities.forEach(currentAb => {
-                const savedAb = savedDomain.abilities?.find(sa => sa.id === currentAb.id);
+              currentDomain.abilities.forEach((currentAb) => {
+                const savedAb = savedDomain.abilities?.find(
+                  (sa) => sa.id === currentAb.id
+                );
                 if (savedAb) {
                   currentAb.nextUse = savedAb.nextUse || 0;
                 }
               });
             }
           });
-          
+
           // Reset transient states
           Game.lastUpdate = Date.now();
           Game.buffs = [];
           Game.activeTargeting = null;
           storyLogInitialized = false; // Force story log re-init
           const storyLog = document.getElementById("story-log");
-          if (storyLog) storyLog.innerHTML = '<p class="text-gray-500">Game loaded. Echoes resume...</p>';
-
+          if (storyLog)
+            storyLog.innerHTML =
+              '<p class="text-gray-500">Game loaded. Echoes resume...</p>';
 
           renderAllDomains();
           renderAllTrophies();
@@ -1241,11 +1287,17 @@
           checkStoryEvents(); // Re-evaluate story events based on loaded state
           TutorialManager.checkState(); // Re-evaluate tutorial state
 
-          Bus.emit("feedback:message", { message: "Game Loaded Successfully!", type: "success" });
+          Bus.emit("feedback:message", {
+            message: "Game Loaded Successfully!",
+            type: "success",
+          });
           return true;
         } catch (e) {
           console.error("Error loading game:", e);
-          Bus.emit("feedback:message", { message: "Failed to load game. Save data might be corrupted.", type: "error" });
+          Bus.emit("feedback:message", {
+            message: "Failed to load game. Save data might be corrupted.",
+            type: "error",
+          });
           localStorage.removeItem(SAVE_KEY); // Clear corrupted save
           return false;
         }
@@ -1258,350 +1310,541 @@
           id: "gardeners01_trophy",
           name: "Quantum Bloom",
           imagePath: "out/gardeners01.png",
-          story: "Beneath twin quantum moons, the first Probability Petals unfurl, each a nascent universe of 'what if'. This is where your journey as a Shaper begins, in the heart of the Grove's vibrant, chaotic potential.",
-          unlockCondition: (game) => game.getResource("probabilityPetal") >= 200 && game.domains.gardeners?.unlockedLoreLevel >= 1,
+          story:
+            "Beneath twin quantum moons, the first Probability Petals unfurl, each a nascent universe of 'what if'. This is where your journey as a Shaper begins, in the heart of the Grove's vibrant, chaotic potential.",
+          unlockCondition: (game) =>
+            game.getResource("probabilityPetal") >= 200 &&
+            game.domains.gardeners?.unlockedLoreLevel >= 1,
         },
         {
           id: "gardeners02_trophy",
           name: "Nanobot Pruners",
           imagePath: "out/gardeners02.png",
-          story: "Evolved from lab assistants, these microscopic caretakers now sculpt reality itself, tending to wavefunction bonsai. Their delicate work ensures the Grove doesn't collapse under its own infinite possibilities.",
-          unlockCondition: (game) => game.domains.gardeners?.generators.find(g => g.id === "timelineBloomer")?.level >= 3 && game.domains.gardeners?.unlockedLoreLevel >= 2,
+          story:
+            "Evolved from lab assistants, these microscopic caretakers now sculpt reality itself, tending to wavefunction bonsai. Their delicate work ensures the Grove doesn't collapse under its own infinite possibilities.",
+          unlockCondition: (game) =>
+            game.domains.gardeners?.generators.find(
+              (g) => g.id === "timelineBloomer"
+            )?.level >= 3 && game.domains.gardeners?.unlockedLoreLevel >= 2,
         },
         {
           id: "gardeners03_trophy",
           name: "Hourglass Pollinators",
           imagePath: "out/gardeners03.png",
-          story: "Timeline Bloomers, resembling cosmic hourglasses, drift through the Grove. They sow seeds of uncertainty, ensuring that no single future becomes too dominant, a crucial act for maintaining the Conflux's balance.",
-          unlockCondition: (game) => game.storyFlags.gardeners_castCollapseCertaintyOnce && game.domains.gardeners?.unlockedLoreLevel >= 3,
+          story:
+            "Timeline Bloomers, resembling cosmic hourglasses, drift through the Grove. They sow seeds of uncertainty, ensuring that no single future becomes too dominant, a crucial act for maintaining the Conflux's balance.",
+          unlockCondition: (game) =>
+            game.storyFlags.gardeners_castCollapseCertaintyOnce &&
+            game.domains.gardeners?.unlockedLoreLevel >= 3,
         },
         {
           id: "gardeners04_trophy",
           name: "Many-Worlds Orchard",
           imagePath: "out/gardeners04.png",
-          story: "Here, each fruit is a self-contained universe, a tangible outcome of the Grove's endless branching. To taste one is to experience a sliver of infinity, a concept central to the Gardeners' philosophy.",
-          unlockCondition: (game) => game.domains.gardeners?.unlockedLoreLevel >= 4 && (game.domains.gardeners?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 10,
+          story:
+            "Here, each fruit is a self-contained universe, a tangible outcome of the Grove's endless branching. To taste one is to experience a sliver of infinity, a concept central to the Gardeners' philosophy.",
+          unlockCondition: (game) =>
+            game.domains.gardeners?.unlockedLoreLevel >= 4 &&
+            (game.domains.gardeners?.generators.reduce(
+              (s, g) => s + g.level,
+              0
+            ) || 0) >= 10,
         },
         {
           id: "gardeners05_trophy",
           name: "Wave-Particle Glasshouse",
           imagePath: "out/gardeners05.png",
-          story: "This structure shimmers, its panes flickering between wave and particle states. Inside, flora of pure potential are nurtured, a testament to the Gardeners' mastery over the fundamental nature of reality.",
-          unlockCondition: (game) => game.domains.gardeners?.unlockedLoreLevel >= 5 && game.getResource("probabilityPetal") >= 10000,
+          story:
+            "This structure shimmers, its panes flickering between wave and particle states. Inside, flora of pure potential are nurtured, a testament to the Gardeners' mastery over the fundamental nature of reality.",
+          unlockCondition: (game) =>
+            game.domains.gardeners?.unlockedLoreLevel >= 5 &&
+            game.getResource("probabilityPetal") >= 10000,
         },
         {
           id: "gardeners06_trophy",
           name: "Dice-Flower Lattice",
           imagePath: "out/gardeners06.png",
-          story: "Probability vines entwine a crystalline lattice where dice-shaped flowers bloom. Each roll, a new law of physics, a new chance for the Grove, a gamble with the Conflux itself.",
-          unlockCondition: (game) => game.domains.gardeners?.unlockedLoreLevel >= 6 && Game.entropyTokens >= 3,
+          story:
+            "Probability vines entwine a crystalline lattice where dice-shaped flowers bloom. Each roll, a new law of physics, a new chance for the Grove, a gamble with the Conflux itself.",
+          unlockCondition: (game) =>
+            game.domains.gardeners?.unlockedLoreLevel >= 6 &&
+            Game.entropyTokens >= 3,
         },
         {
           id: "gardeners07_trophy",
           name: "Entangled Mantle Weavers",
           imagePath: "out/gardeners07.png",
-          story: "The Gardener Elders, beings of immense understanding, weave cosmic tapestries from entangled photon threads. These 'Probability Mantles' shield nascent realities, a vital defense in the chaotic Conflux.",
-          unlockCondition: (game) => game.domains.gardeners?.unlockedLoreLevel >= 8 && (game.domains.gardeners?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 25,
+          story:
+            "The Gardener Elders, beings of immense understanding, weave cosmic tapestries from entangled photon threads. These 'Probability Mantles' shield nascent realities, a vital defense in the chaotic Conflux.",
+          unlockCondition: (game) =>
+            game.domains.gardeners?.unlockedLoreLevel >= 8 &&
+            (game.domains.gardeners?.generators.reduce(
+              (s, g) => s + g.level,
+              0
+            ) || 0) >= 25,
         },
         // Sentient Soundwaves
         {
           id: "soundwaves01_trophy",
           name: "Aurora Amphitheater",
           imagePath: "out/soundwaves01.png",
-          story: "In a crystal hall suspended over the void, sentient basswaves sculpt auroras from silent starlight. This is the birthplace of Echoes, where the first vibrations of the Conflux gained awareness.",
-          unlockCondition: (game) => game.getResource("echoRoyalty") >= 200 && game.domains.soundwaves?.unlockedLoreLevel >= 1,
+          story:
+            "In a crystal hall suspended over the void, sentient basswaves sculpt auroras from silent starlight. This is the birthplace of Echoes, where the first vibrations of the Conflux gained awareness.",
+          unlockCondition: (game) =>
+            game.getResource("echoRoyalty") >= 200 &&
+            game.domains.soundwaves?.unlockedLoreLevel >= 1,
         },
         {
           id: "soundwaves02_trophy",
           name: "Melodic Surfers",
           imagePath: "out/soundwaves02.png",
-          story: "Golden treble clefs, the Soundwaves' artists, ride currents of pure resonance. They compose reality's soundtrack, their melodies shaping the very fabric of their domain and influencing others.",
-          unlockCondition: (game) => game.domains.soundwaves?.generators.find(g => g.id === "cosmicArtist")?.level >= 3 && game.domains.soundwaves?.unlockedLoreLevel >= 2,
+          story:
+            "Golden treble clefs, the Soundwaves' artists, ride currents of pure resonance. They compose reality's soundtrack, their melodies shaping the very fabric of their domain and influencing others.",
+          unlockCondition: (game) =>
+            game.domains.soundwaves?.generators.find(
+              (g) => g.id === "cosmicArtist"
+            )?.level >= 3 && game.domains.soundwaves?.unlockedLoreLevel >= 2,
         },
         {
           id: "soundwaves03_trophy",
           name: "Gravity Beat Drop",
           imagePath: "out/soundwaves03.png",
-          story: "The legendary Bass-Drop Billow unleashes a beat so profound it warps spacetime itself. A risky maneuver, it demonstrates the raw power the Soundwaves can wield within the Conflux.",
-          unlockCondition: (game) => game.storyFlags.soundwaves_castDissonanceBurstOnce && game.domains.soundwaves?.unlockedLoreLevel >= 3,
+          story:
+            "The legendary Bass-Drop Billow unleashes a beat so profound it warps spacetime itself. A risky maneuver, it demonstrates the raw power the Soundwaves can wield within the Conflux.",
+          unlockCondition: (game) =>
+            game.storyFlags.soundwaves_castDissonanceBurstOnce &&
+            game.domains.soundwaves?.unlockedLoreLevel >= 3,
         },
         {
           id: "soundwaves04_trophy",
           name: "Harmonic Cathedrals",
           imagePath: "out/soundwaves04.png",
-          story: "Amp-Cathedral spires vibrate at dusk, their stained glass windows singing to the stars. These structures are more than buildings; they are instruments amplifying the Soundwaves' influence.",
-          unlockCondition: (game) => game.domains.soundwaves?.unlockedLoreLevel >= 4 && (game.domains.soundwaves?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 10,
+          story:
+            "Amp-Cathedral spires vibrate at dusk, their stained glass windows singing to the stars. These structures are more than buildings; they are instruments amplifying the Soundwaves' influence.",
+          unlockCondition: (game) =>
+            game.domains.soundwaves?.unlockedLoreLevel >= 4 &&
+            (game.domains.soundwaves?.generators.reduce(
+              (s, g) => s + g.level,
+              0
+            ) || 0) >= 10,
         },
         {
           id: "soundwaves05_trophy",
           name: "Reality Foam Silence",
           imagePath: "out/soundwaves05.png",
-          story: "A bubble of noise-cancelling foam, a sanctuary where lyric monks find perfect, protective silence. Even in a domain of sound, the power of its absence is understood and harnessed.",
-          unlockCondition: (game) => game.domains.soundwaves?.unlockedLoreLevel >= 5 && game.getResource("echoRoyalty") >= 10000,
+          story:
+            "A bubble of noise-cancelling foam, a sanctuary where lyric monks find perfect, protective silence. Even in a domain of sound, the power of its absence is understood and harnessed.",
+          unlockCondition: (game) =>
+            game.domains.soundwaves?.unlockedLoreLevel >= 5 &&
+            game.getResource("echoRoyalty") >= 10000,
         },
         {
           id: "soundwaves06_trophy",
           name: "Temporal Chorus Loop",
           imagePath: "out/soundwaves06.png",
-          story: "The Chorus Collective's song echoes through time, a melody caught in an eternal loop. This mastery over temporal acoustics hints at the deeper connections between Conflux domains.",
-          unlockCondition: (game) => game.domains.soundwaves?.unlockedLoreLevel >= 6 && Game.prestigeCount >= 1,
+          story:
+            "The Chorus Collective's song echoes through time, a melody caught in an eternal loop. This mastery over temporal acoustics hints at the deeper connections between Conflux domains.",
+          unlockCondition: (game) =>
+            game.domains.soundwaves?.unlockedLoreLevel >= 6 &&
+            Game.prestigeCount >= 1,
         },
         {
           id: "soundwaves07_trophy",
           name: "Grand Unified Metronome",
           imagePath: "out/soundwaves07.png",
-          story: "A cosmic metronome with glowing strings connects dimensions, its rhythm the heartbeat of all existence within the Conflux. The Soundwaves seek to tune everything to their Grand Unified Melody.",
-          unlockCondition: (game) => game.domains.soundwaves?.unlockedLoreLevel >= 8 && (game.domains.soundwaves?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 25,
+          story:
+            "A cosmic metronome with glowing strings connects dimensions, its rhythm the heartbeat of all existence within the Conflux. The Soundwaves seek to tune everything to their Grand Unified Melody.",
+          unlockCondition: (game) =>
+            game.domains.soundwaves?.unlockedLoreLevel >= 8 &&
+            (game.domains.soundwaves?.generators.reduce(
+              (s, g) => s + g.level,
+              0
+            ) || 0) >= 25,
         },
         // Cosmic Soup Ladle
         {
           id: "soup01_trophy",
           name: "Primordial Stir",
           imagePath: "out/soup01.png",
-          story: "A divine ladle stirs the nascent universe, seasoning reality with sizzling Flavor Quarks. This is the act of creation itself, the moment flavor was introduced to the cosmic equation.",
-          unlockCondition: (game) => game.getResource("flavorQuark") >= 200 && game.domains.soup?.unlockedLoreLevel >= 1,
+          story:
+            "A divine ladle stirs the nascent universe, seasoning reality with sizzling Flavor Quarks. This is the act of creation itself, the moment flavor was introduced to the cosmic equation.",
+          unlockCondition: (game) =>
+            game.getResource("flavorQuark") >= 200 &&
+            game.domains.soup?.unlockedLoreLevel >= 1,
         },
         {
           id: "soup02_trophy",
           name: "Alphabet Particle Soup",
           imagePath: "out/soup02.png",
-          story: "Pasta-like letters drift in the cosmic broth, spelling out the universe's quantum recipes. The Ladle's domain is one of constant, delicious experimentation with the building blocks of reality.",
-          unlockCondition: (game) => game.domains.soup?.generators.find(g => g.id === "primordialBroth")?.level >= 3 && game.domains.soup?.unlockedLoreLevel >= 2,
+          story:
+            "Pasta-like letters drift in the cosmic broth, spelling out the universe's quantum recipes. The Ladle's domain is one of constant, delicious experimentation with the building blocks of reality.",
+          unlockCondition: (game) =>
+            game.domains.soup?.generators.find(
+              (g) => g.id === "primordialBroth"
+            )?.level >= 3 && game.domains.soup?.unlockedLoreLevel >= 2,
         },
         {
           id: "soup03_trophy",
           name: "Reverse-Time Noodles",
           imagePath: "out/soup03.png",
-          story: "Noodles that defy entropy, spiraling counterclockwise in a bowl at the edge of time. A culinary paradox, they represent the Ladle's ability to bend even fundamental laws for the perfect dish.",
-          unlockCondition: (game) => game.storyFlags.soup_castBigSlurpOnce && game.domains.soup?.unlockedLoreLevel >= 3,
+          story:
+            "Noodles that defy entropy, spiraling counterclockwise in a bowl at the edge of time. A culinary paradox, they represent the Ladle's ability to bend even fundamental laws for the perfect dish.",
+          unlockCondition: (game) =>
+            game.storyFlags.soup_castBigSlurpOnce &&
+            game.domains.soup?.unlockedLoreLevel >= 3,
         },
         {
           id: "soup04_trophy",
           name: "Bouillon Star Nebulae",
           imagePath: "out/soup04.png",
-          story: "Stars of pure flavor melt into nebulae, each a unique taste in the cosmic palate. The Ladle harvests these for its grandest recipes, influencing the very essence of nearby realities.",
-          unlockCondition: (game) => game.domains.soup?.unlockedLoreLevel >= 4 && (game.domains.soup?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 10,
+          story:
+            "Stars of pure flavor melt into nebulae, each a unique taste in the cosmic palate. The Ladle harvests these for its grandest recipes, influencing the very essence of nearby realities.",
+          unlockCondition: (game) =>
+            game.domains.soup?.unlockedLoreLevel >= 4 &&
+            (game.domains.soup?.generators.reduce((s, g) => s + g.level, 0) ||
+              0) >= 10,
         },
         {
           id: "soup05_trophy",
           name: "Dark Matter Kimchi",
           imagePath: "out/soup05.png",
-          story: "The Cosmo-Sommelier, the Ladle itself, tastes fermented dark matter – a spicy delicacy from beyond the veil. This discovery pushes the boundaries of what can be considered 'flavor'.",
-          unlockCondition: (game) => game.domains.soup?.unlockedLoreLevel >= 5 && game.getResource("flavorQuark") >= 10000,
+          story:
+            "The Cosmo-Sommelier, the Ladle itself, tastes fermented dark matter – a spicy delicacy from beyond the veil. This discovery pushes the boundaries of what can be considered 'flavor'.",
+          unlockCondition: (game) =>
+            game.domains.soup?.unlockedLoreLevel >= 5 &&
+            game.getResource("flavorQuark") >= 10000,
         },
         {
           id: "soup06_trophy",
           name: "Flavor Foam Creation",
           imagePath: "out/soup06.png",
-          story: "Sheared from a swirling universe, this ethereal foam seasons newborn planets with exotic tastes. It's a reminder that even the most chaotic cosmic events can yield delicious results.",
-          unlockCondition: (game) => game.domains.soup?.unlockedLoreLevel >= 6 && game.storyFlags.soup_slurpsThisPrestige >= 2,
+          story:
+            "Sheared from a swirling universe, this ethereal foam seasons newborn planets with exotic tastes. It's a reminder that even the most chaotic cosmic events can yield delicious results.",
+          unlockCondition: (game) =>
+            game.domains.soup?.unlockedLoreLevel >= 6 &&
+            game.storyFlags.soup_slurpsThisPrestige >= 2,
         },
         {
           id: "soup07_trophy",
           name: "The Omniversal Slurp",
           imagePath: "out/soup07.png",
-          story: "A Big Slurp echoes across dimensions, vacuuming resource streams into a shimmering cosmic soup. The Ladle's ultimate expression of culinary dominance, a taste of everything, all at once.",
-          unlockCondition: (game) => game.domains.soup?.unlockedLoreLevel >= 8 && (game.domains.soup?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 25,
+          story:
+            "A Big Slurp echoes across dimensions, vacuuming resource streams into a shimmering cosmic soup. The Ladle's ultimate expression of culinary dominance, a taste of everything, all at once.",
+          unlockCondition: (game) =>
+            game.domains.soup?.unlockedLoreLevel >= 8 &&
+            (game.domains.soup?.generators.reduce((s, g) => s + g.level, 0) ||
+              0) >= 25,
         },
         // Bureaucratic Afterlives
         {
           id: "afterlives01_trophy",
           name: "Infinite In-Tray",
           imagePath: "out/afterlives01.png",
-          story: "Spectral paperwork stretches to infinity, a testament to eternal bureaucracy. Each form, a soul's journey, meticulously (and slowly) processed in Clerical Purgatoria.",
-          unlockCondition: (game) => game.getResource("existentialStamp") >= 200 && game.domains.afterlives?.unlockedLoreLevel >= 1,
+          story:
+            "Spectral paperwork stretches to infinity, a testament to eternal bureaucracy. Each form, a soul's journey, meticulously (and slowly) processed in Clerical Purgatoria.",
+          unlockCondition: (game) =>
+            game.getResource("existentialStamp") >= 200 &&
+            game.domains.afterlives?.unlockedLoreLevel >= 1,
         },
         {
           id: "afterlives02_trophy",
           name: "Paperclips of Binding",
           imagePath: "out/afterlives02.png",
-          story: "Ghastly staplers, once tools of chaos, are now silenced by glowing green paperclips. These simple items maintain order among the spectral workforce, ensuring the endless flow of forms.",
-          unlockCondition: (game) => game.domains.afterlives?.generators.find(g => g.id === "soulClerk")?.level >= 3 && game.domains.afterlives?.unlockedLoreLevel >= 2,
+          story:
+            "Ghastly staplers, once tools of chaos, are now silenced by glowing green paperclips. These simple items maintain order among the spectral workforce, ensuring the endless flow of forms.",
+          unlockCondition: (game) =>
+            game.domains.afterlives?.generators.find(
+              (g) => g.id === "soulClerk"
+            )?.level >= 3 && game.domains.afterlives?.unlockedLoreLevel >= 2,
         },
         {
           id: "afterlives03_trophy",
           name: "Debt-Gremlin Audit",
           imagePath: "out/afterlives03.png",
-          story: "An audit spirit, clad in a spectral visor, conjures mischievous debt-gremlins from piles of cosmic red tape. Their purpose: to ensure every soul pays its existential dues.",
-          unlockCondition: (game) => game.storyFlags.afterlives_castAuditRivalOnce && game.domains.afterlives?.unlockedLoreLevel >= 3,
+          story:
+            "An audit spirit, clad in a spectral visor, conjures mischievous debt-gremlins from piles of cosmic red tape. Their purpose: to ensure every soul pays its existential dues.",
+          unlockCondition: (game) =>
+            game.storyFlags.afterlives_castAuditRivalOnce &&
+            game.domains.afterlives?.unlockedLoreLevel >= 3,
         },
         {
           id: "afterlives04_trophy",
           name: "Quantum Paperwork Paradox",
           imagePath: "out/afterlives04.png",
-          story: "A form simultaneously approved and denied, its fate sealed by overlapping, translucent stamps. This bureaucratic singularity is a common hazard in the higher (or lower) offices of Purgatoria.",
-          unlockCondition: (game) => game.domains.afterlives?.unlockedLoreLevel >= 4 && (game.domains.afterlives?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 10,
+          story:
+            "A form simultaneously approved and denied, its fate sealed by overlapping, translucent stamps. This bureaucratic singularity is a common hazard in the higher (or lower) offices of Purgatoria.",
+          unlockCondition: (game) =>
+            game.domains.afterlives?.unlockedLoreLevel >= 4 &&
+            (game.domains.afterlives?.generators.reduce(
+              (s, g) => s + g.level,
+              0
+            ) || 0) >= 10,
         },
         {
           id: "afterlives05_trophy",
           name: "GhOST Local 404",
           imagePath: "out/afterlives05.png",
-          story: "The spectral union, Ghastly Office & Spirit Technicians Local 404, meets to debate bylaws around a levitating coffee pot. Even in the afterlife, workers' rights (and coffee breaks) are paramount.",
-          unlockCondition: (game) => game.domains.afterlives?.unlockedLoreLevel >= 5 && game.getResource("existentialStamp") >= 10000,
+          story:
+            "The spectral union, Ghastly Office & Spirit Technicians Local 404, meets to debate bylaws around a levitating coffee pot. Even in the afterlife, workers' rights (and coffee breaks) are paramount.",
+          unlockCondition: (game) =>
+            game.domains.afterlives?.unlockedLoreLevel >= 5 &&
+            game.getResource("existentialStamp") >= 10000,
         },
         {
           id: "afterlives06_trophy",
           name: "Soul Queue Lobby",
           imagePath: "out/afterlives06.png",
-          story: "Translucent souls queue beneath endless escalators, patiently awaiting their turn in the great beyond. The Bureau's main lobby is a sight of solemn, organized eternity.",
-          unlockCondition: (game) => game.domains.afterlives?.unlockedLoreLevel >= 6 && game.storyFlags.afterlives_auditedRivals.size >= 3,
+          story:
+            "Translucent souls queue beneath endless escalators, patiently awaiting their turn in the great beyond. The Bureau's main lobby is a sight of solemn, organized eternity.",
+          unlockCondition: (game) =>
+            game.domains.afterlives?.unlockedLoreLevel >= 6 &&
+            game.storyFlags.afterlives_auditedRivals.size >= 3,
         },
         {
           id: "afterlives07_trophy",
           name: "Metaphysical Compliance",
           imagePath: "out/afterlives07.png",
-          story: "The Under-Secretary of Metaphysical Compliance signs cosmic tax forms, each stroke dripping with stardust and authority. This is the pinnacle of afterlife administration, where universal laws are ratified.",
-          unlockCondition: (game) => game.domains.afterlives?.unlockedLoreLevel >= 8 && (game.domains.afterlives?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 25,
+          story:
+            "The Under-Secretary of Metaphysical Compliance signs cosmic tax forms, each stroke dripping with stardust and authority. This is the pinnacle of afterlife administration, where universal laws are ratified.",
+          unlockCondition: (game) =>
+            game.domains.afterlives?.unlockedLoreLevel >= 8 &&
+            (game.domains.afterlives?.generators.reduce(
+              (s, g) => s + g.level,
+              0
+            ) || 0) >= 25,
         },
         // Fractal Friend Factory
         {
           id: "fractals01_trophy",
           name: "Möbius Whiskers",
           imagePath: "out/fractals01.png",
-          story: "The cat 'Whiskers,' a being of pure geometry, chases its own tail through an infinite mirror corridor. A purrfect paradox, embodying the Factory's obsession with self-similarity.",
-          unlockCondition: (game) => game.getResource("symmetryShard") >= 200 && game.domains.fractals?.unlockedLoreLevel >= 1,
+          story:
+            "The cat 'Whiskers,' a being of pure geometry, chases its own tail through an infinite mirror corridor. A purrfect paradox, embodying the Factory's obsession with self-similarity.",
+          unlockCondition: (game) =>
+            game.getResource("symmetryShard") >= 200 &&
+            game.domains.fractals?.unlockedLoreLevel >= 1,
         },
         {
           id: "fractals02_trophy",
           name: "Recursive Clay Forge",
           imagePath: "out/fractals02.png",
-          story: "Tessellators, the artisans of this domain, sculpt self-replicating pets from recursive clay on kaleidoscopic anvils. Each creation is a gateway to infinite, smaller companions.",
-          unlockCondition: (game) => game.domains.fractals?.generators.find(g => g.id === "fractalPet")?.level >= 3 && game.domains.fractals?.unlockedLoreLevel >= 2,
+          story:
+            "Tessellators, the artisans of this domain, sculpt self-replicating pets from recursive clay on kaleidoscopic anvils. Each creation is a gateway to infinite, smaller companions.",
+          unlockCondition: (game) =>
+            game.domains.fractals?.generators.find((g) => g.id === "fractalPet")
+              ?.level >= 3 && game.domains.fractals?.unlockedLoreLevel >= 2,
         },
         {
           id: "fractals03_trophy",
           name: "Infinite Egg Hatchery",
           imagePath: "out/fractals03.png",
-          story: "In the Symmetry Hatchery, pet eggs nest within larger eggs, ad infinitum. This recursive nesting is the core principle of the Factory's production line, a source of endless Shards.",
-          unlockCondition: (game) => game.storyFlags.fractals_castRecursiveSwarmOnce && game.domains.fractals?.unlockedLoreLevel >= 3,
+          story:
+            "In the Symmetry Hatchery, pet eggs nest within larger eggs, ad infinitum. This recursive nesting is the core principle of the Factory's production line, a source of endless Shards.",
+          unlockCondition: (game) =>
+            game.storyFlags.fractals_castRecursiveSwarmOnce &&
+            game.domains.fractals?.unlockedLoreLevel >= 3,
         },
         {
           id: "fractals04_trophy",
           name: "Factory Inversion",
           imagePath: "out/fractals04.png",
-          story: "A critical recursion error causes the factory to fold inside out. Workers, unfazed, surf waves of shimmering, psychedelic geometry, a common occupational hazard.",
-          unlockCondition: (game) => game.domains.fractals?.unlockedLoreLevel >= 4 && (game.domains.fractals?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 10,
+          story:
+            "A critical recursion error causes the factory to fold inside out. Workers, unfazed, surf waves of shimmering, psychedelic geometry, a common occupational hazard.",
+          unlockCondition: (game) =>
+            game.domains.fractals?.unlockedLoreLevel >= 4 &&
+            (game.domains.fractals?.generators.reduce(
+              (s, g) => s + g.level,
+              0
+            ) || 0) >= 10,
         },
         {
           id: "fractals05_trophy",
           name: "Negative-Dimension Vault",
           imagePath: "out/fractals05.png",
-          story: "A vault of impossible hypercubes, storing Symmetry Shards beyond the confines of normal space. This breakthrough allows the Factory to accumulate vast reserves of fractal energy.",
-          unlockCondition: (game) => game.domains.fractals?.unlockedLoreLevel >= 5 && game.getResource("symmetryShard") >= 10000,
+          story:
+            "A vault of impossible hypercubes, storing Symmetry Shards beyond the confines of normal space. This breakthrough allows the Factory to accumulate vast reserves of fractal energy.",
+          unlockCondition: (game) =>
+            game.domains.fractals?.unlockedLoreLevel >= 5 &&
+            game.getResource("symmetryShard") >= 10000,
         },
         {
           id: "fractals06_trophy",
           name: "Antifractal Shield",
           imagePath: "out/fractals06.png",
-          story: "Antifractal defenses neutralize hostile buffs, their white noise cancelling vibrant fractal waves. A necessary innovation to protect the Factory's delicate patterns from external interference.",
-          unlockCondition: (game) => game.domains.fractals?.unlockedLoreLevel >= 6 && Game.realityStrain >= Game.maxRealityStrain * 0.5,
+          story:
+            "Antifractal defenses neutralize hostile buffs, their white noise cancelling vibrant fractal waves. A necessary innovation to protect the Factory's delicate patterns from external interference.",
+          unlockCondition: (game) =>
+            game.domains.fractals?.unlockedLoreLevel >= 6 &&
+            Game.realityStrain >= Game.maxRealityStrain * 0.5,
         },
         {
           id: "fractals07_trophy",
           name: "Pet Micro-Civilization",
           imagePath: "out/fractals07.png",
-          story: "Within each fractal pet, a tiny, complex society thrives, debating laws in a crystal metropolis. The Factory's creations are not just pets, but entire recursive universes.",
-          unlockCondition: (game) => game.domains.fractals?.unlockedLoreLevel >= 8 && (game.domains.fractals?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 25,
+          story:
+            "Within each fractal pet, a tiny, complex society thrives, debating laws in a crystal metropolis. The Factory's creations are not just pets, but entire recursive universes.",
+          unlockCondition: (game) =>
+            game.domains.fractals?.unlockedLoreLevel >= 8 &&
+            (game.domains.fractals?.generators.reduce(
+              (s, g) => s + g.level,
+              0
+            ) || 0) >= 25,
         },
         // Time-Traveling Snack Bar
         {
           id: "snackbar01_trophy",
           name: "Dino-Burger Dash",
           imagePath: "out/snackbar01.png",
-          story: "The Era Food Truck, parked precariously during a dinosaur stampede, serves chrono-burgers to surprised velociraptors. A typical Tuesday for the Snack Bar crew, always chasing the most exotic clientele.",
-          unlockCondition: (game) => game.getResource("chronoTip") >= 200 && game.domains.snackbar?.unlockedLoreLevel >= 1,
+          story:
+            "The Era Food Truck, parked precariously during a dinosaur stampede, serves chrono-burgers to surprised velociraptors. A typical Tuesday for the Snack Bar crew, always chasing the most exotic clientele.",
+          unlockCondition: (game) =>
+            game.getResource("chronoTip") >= 200 &&
+            game.domains.snackbar?.unlockedLoreLevel >= 1,
         },
         {
           id: "snackbar02_trophy",
           name: "Yesterday's Fries, Today",
           imagePath: "out/snackbar02.png",
-          story: "The temporal deep-fryer, a marvel of chrono-culinary engineering, ensures fries cooked yesterday are perfectly golden and cool today. This innovation revolutionized the concept of 'fast food'.",
-          unlockCondition: (game) => game.domains.snackbar?.generators.find(g => g.id === "eraFoodTruck")?.level >= 3 && game.domains.snackbar?.unlockedLoreLevel >= 2,
+          story:
+            "The temporal deep-fryer, a marvel of chrono-culinary engineering, ensures fries cooked yesterday are perfectly golden and cool today. This innovation revolutionized the concept of 'fast food'.",
+          unlockCondition: (game) =>
+            game.domains.snackbar?.generators.find(
+              (g) => g.id === "eraFoodTruck"
+            )?.level >= 3 && game.domains.snackbar?.unlockedLoreLevel >= 2,
         },
         {
           id: "snackbar03_trophy",
           name: "Future-Tomato Ketchup",
           imagePath: "out/snackbar03.png",
-          story: "Holographic chrono-condiments, like ketchup made from tomatoes yet to ripen, are a staple. These pre-cogs (pre-condiments?) offer a taste of what's to come, quite literally.",
-          unlockCondition: (game) => game.storyFlags.snackbar_castParadoxSurgeOnce && game.domains.snackbar?.unlockedLoreLevel >= 3,
+          story:
+            "Holographic chrono-condiments, like ketchup made from tomatoes yet to ripen, are a staple. These pre-cogs (pre-condiments?) offer a taste of what's to come, quite literally.",
+          unlockCondition: (game) =>
+            game.storyFlags.snackbar_castParadoxSurgeOnce &&
+            game.domains.snackbar?.unlockedLoreLevel >= 3,
         },
         {
           id: "snackbar04_trophy",
           name: "Epoch-Spanning Ramen",
           imagePath: "out/snackbar04.png",
-          story: "A bowl of Entropy Ramen, served simultaneously hot and cold across different eras. Eating it is a disorienting but delicious experience, a favorite among seasoned time travelers.",
-          unlockCondition: (game) => game.domains.snackbar?.unlockedLoreLevel >= 4 && (game.domains.snackbar?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 10,
+          story:
+            "A bowl of Entropy Ramen, served simultaneously hot and cold across different eras. Eating it is a disorienting but delicious experience, a favorite among seasoned time travelers.",
+          unlockCondition: (game) =>
+            game.domains.snackbar?.unlockedLoreLevel >= 4 &&
+            (game.domains.snackbar?.generators.reduce(
+              (s, g) => s + g.level,
+              0
+            ) || 0) >= 10,
         },
         {
           id: "snackbar05_trophy",
           name: "32nd Century Health Inspection",
           imagePath: "out/snackbar05.png",
-          story: "Inspectors from 3128 AD, armed with laser clipboards, scan an archaic grill, ensuring temporal hygiene. The Snack Bar always passes, thanks to its meticulous (and anachronistic) cleaning protocols.",
-          unlockCondition: (game) => game.domains.snackbar?.unlockedLoreLevel >= 5 && game.getResource("chronoTip") >= 10000,
+          story:
+            "Inspectors from 3128 AD, armed with laser clipboards, scan an archaic grill, ensuring temporal hygiene. The Snack Bar always passes, thanks to its meticulous (and anachronistic) cleaning protocols.",
+          unlockCondition: (game) =>
+            game.domains.snackbar?.unlockedLoreLevel >= 5 &&
+            game.getResource("chronoTip") >= 10000,
         },
         {
           id: "snackbar06_trophy",
           name: "Paradoxical Sign Reset",
           imagePath: "out/snackbar06.png",
-          story: "A Paradox Surge, a common side effect of temporal tinkering, crashes the system, resetting the neon sign's numbers backward in a flash of temporal lightning. Just another day at the office.",
-          unlockCondition: (game) => game.domains.snackbar?.unlockedLoreLevel >= 6 && game.storyFlags.snackbar_surgesThisPrestige >= 2,
+          story:
+            "A Paradox Surge, a common side effect of temporal tinkering, crashes the system, resetting the neon sign's numbers backward in a flash of temporal lightning. Just another day at the office.",
+          unlockCondition: (game) =>
+            game.domains.snackbar?.unlockedLoreLevel >= 6 &&
+            game.storyFlags.snackbar_surgesThisPrestige >= 2,
         },
         {
           id: "snackbar07_trophy",
           name: "Omnipresent Food Truck Fleet",
           imagePath: "out/snackbar07.png",
-          story: "A fleet of Era Food Trucks, existing simultaneously across all timelines, a testament to the Snack Bar's ultimate mastery of temporal omnipresence. Service anytime, anywhen.",
-          unlockCondition: (game) => game.domains.snackbar?.unlockedLoreLevel >= 8 && (game.domains.snackbar?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 25,
+          story:
+            "A fleet of Era Food Trucks, existing simultaneously across all timelines, a testament to the Snack Bar's ultimate mastery of temporal omnipresence. Service anytime, anywhen.",
+          unlockCondition: (game) =>
+            game.domains.snackbar?.unlockedLoreLevel >= 8 &&
+            (game.domains.snackbar?.generators.reduce(
+              (s, g) => s + g.level,
+              0
+            ) || 0) >= 25,
         },
         // Emotion Mining Co.
         {
           id: "emotions01_trophy",
           name: "Joy Crystal Cavern",
           imagePath: "out/emotions01.png",
-          story: "Deep within the Sentient Stratum, miners extract raw Joy from glowing caverns. Here, feelings manifest as vibrant, tangible crystals, the primary resource of this empathic domain.",
-          unlockCondition: (game) => game.getResource("vibeOre") >= 200 && game.domains.emotions?.unlockedLoreLevel >= 1,
+          story:
+            "Deep within the Sentient Stratum, miners extract raw Joy from glowing caverns. Here, feelings manifest as vibrant, tangible crystals, the primary resource of this empathic domain.",
+          unlockCondition: (game) =>
+            game.getResource("vibeOre") >= 200 &&
+            game.domains.emotions?.unlockedLoreLevel >= 1,
         },
         {
           id: "emotions02_trophy",
           name: "Mirrored Regret Gas",
           imagePath: "out/emotions02.png",
-          story: "Volatile Regret Gas swirls within the mirrored helmets of miners. This dangerous substance is a potent reminder of 'what could have been,' carefully handled to prevent psychic feedback loops.",
-          unlockCondition: (game) => game.domains.emotions?.generators.find(g => g.id === "empathyReactor")?.level >= 3 && game.domains.emotions?.unlockedLoreLevel >= 2,
+          story:
+            "Volatile Regret Gas swirls within the mirrored helmets of miners. This dangerous substance is a potent reminder of 'what could have been,' carefully handled to prevent psychic feedback loops.",
+          unlockCondition: (game) =>
+            game.domains.emotions?.generators.find(
+              (g) => g.id === "empathyReactor"
+            )?.level >= 3 && game.domains.emotions?.unlockedLoreLevel >= 2,
         },
         {
           id: "emotions03_trophy",
           name: "Vibe Alloy Reactor",
           imagePath: "out/emotions03.png",
-          story: "The Empathy Reactor's core refines raw sentiment into Vibe Alloy, a psycho-reactive metal pulsing with heart-shaped energy. This alloy is coveted across the Conflux for its unique properties.",
-          unlockCondition: (game) => game.storyFlags.emotions_castSerenityFieldOnce && game.domains.emotions?.unlockedLoreLevel >= 3,
+          story:
+            "The Empathy Reactor's core refines raw sentiment into Vibe Alloy, a psycho-reactive metal pulsing with heart-shaped energy. This alloy is coveted across the Conflux for its unique properties.",
+          unlockCondition: (game) =>
+            game.storyFlags.emotions_castSerenityFieldOnce &&
+            game.domains.emotions?.unlockedLoreLevel >= 3,
         },
         {
           id: "emotions04_trophy",
           name: "Subconscious Megafauna",
           imagePath: "out/emotions04.png",
-          story: "On the Subconscious Plateau, archetypal megafauna – manifestations of collective dreams and fears – roam a surreal, vibrant dreamscape. Their moods directly influence Vibe Ore production.",
-          unlockCondition: (game) => game.domains.emotions?.unlockedLoreLevel >= 4 && (game.domains.emotions?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 10,
+          story:
+            "On the Subconscious Plateau, archetypal megafauna – manifestations of collective dreams and fears – roam a surreal, vibrant dreamscape. Their moods directly influence Vibe Ore production.",
+          unlockCondition: (game) =>
+            game.domains.emotions?.unlockedLoreLevel >= 4 &&
+            (game.domains.emotions?.generators.reduce(
+              (s, g) => s + g.level,
+              0
+            ) || 0) >= 10,
         },
         {
           id: "emotions05_trophy",
           name: "Serene Cloud Field",
           imagePath: "out/emotions05.png",
-          story: "A Serenity Field, generated by advanced empathic technology, calms chaotic feelings into tranquil pastel clouds. This bubble of pure peace is a refuge and a powerful production booster.",
-          unlockCondition: (game) => game.domains.emotions?.unlockedLoreLevel >= 5 && game.getResource("vibeOre") >= 10000,
+          story:
+            "A Serenity Field, generated by advanced empathic technology, calms chaotic feelings into tranquil pastel clouds. This bubble of pure peace is a refuge and a powerful production booster.",
+          unlockCondition: (game) =>
+            game.domains.emotions?.unlockedLoreLevel >= 5 &&
+            game.getResource("vibeOre") >= 10000,
         },
         {
           id: "emotions06_trophy",
           name: "Sepia-Toned Nostalgia Vein",
           imagePath: "out/emotions06.png",
-          story: "Miners tap into the Nostalgia Vein, their visor surfaces shimmering with sepia-toned memories. This potent, bittersweet emotion is a rare and valuable form of Vibe Ore.",
-          unlockCondition: (game) => game.domains.emotions?.unlockedLoreLevel >= 6 && Game.entropyTokens >= 10,
+          story:
+            "Miners tap into the Nostalgia Vein, their visor surfaces shimmering with sepia-toned memories. This potent, bittersweet emotion is a rare and valuable form of Vibe Ore.",
+          unlockCondition: (game) =>
+            game.domains.emotions?.unlockedLoreLevel >= 6 &&
+            Game.entropyTokens >= 10,
         },
         {
           id: "emotions07_trophy",
           name: "Psycho-Crystal Bloom",
           imagePath: "out/emotions07.png",
-          story: "The Sentient Stratum, fully terraformed by emotional energy, blooms into a psychedelic Psycho-Crystal Garden. This ultimate state of empathic resonance radiates powerful vibes across the Conflux.",
-          unlockCondition: (game) => game.domains.emotions?.unlockedLoreLevel >= 8 && (game.domains.emotions?.generators.reduce((s, g) => s + g.level, 0) || 0) >= 25,
+          story:
+            "The Sentient Stratum, fully terraformed by emotional energy, blooms into a psychedelic Psycho-Crystal Garden. This ultimate state of empathic resonance radiates powerful vibes across the Conflux.",
+          unlockCondition: (game) =>
+            game.domains.emotions?.unlockedLoreLevel >= 8 &&
+            (game.domains.emotions?.generators.reduce(
+              (s, g) => s + g.level,
+              0
+            ) || 0) >= 25,
         },
       ];
 
@@ -1610,7 +1853,7 @@
         const trophyEl = document.createElement("div");
         trophyEl.id = `trophy-${trophy.id}`;
         // Add 'tooltip' class to enable existing CSS for hover-based visibility
-        trophyEl.className = "trophy-item tooltip"; 
+        trophyEl.className = "trophy-item tooltip";
         if (!isUnlocked) {
           trophyEl.classList.add("locked");
         }
@@ -1620,7 +1863,7 @@
           img.src = trophy.imagePath;
           img.alt = trophy.name;
         } else {
-          img.alt = "Locked Trophy"; 
+          img.alt = "Locked Trophy";
           // The ::after pseudo-element will show the '?'
         }
 
@@ -1641,15 +1884,18 @@
         const container = document.getElementById("trophies-container");
         if (!container) return;
         container.innerHTML = ""; // Clear existing trophies
-        TROPHIES.forEach(trophy => {
+        TROPHIES.forEach((trophy) => {
           container.appendChild(renderTrophy(trophy));
         });
       }
 
       function checkAndUnlockTrophies() {
         let newUnlockOccurred = false;
-        TROPHIES.forEach(trophy => {
-          if (!Game.unlockedTrophies.has(trophy.id) && trophy.unlockCondition(Game)) {
+        TROPHIES.forEach((trophy) => {
+          if (
+            !Game.unlockedTrophies.has(trophy.id) &&
+            trophy.unlockCondition(Game)
+          ) {
             Game.unlockedTrophies.add(trophy.id);
             Bus.emit("trophy:unlocked", trophy);
             saveGame(); // Auto-save when a trophy is unlocked
@@ -1659,10 +1905,9 @@
         // Re-render the whole gallery if any new trophy was unlocked.
         // For more performance, one could update only the changed trophy elements.
         if (newUnlockOccurred) {
-          renderAllTrophies(); 
+          renderAllTrophies();
         }
       }
-
 
       // --- TUTORIAL MANAGER ---
       const TutorialManager = (() => {
@@ -2373,14 +2618,18 @@
       });
       Bus.on("trophy:unlocked", (trophy) => {
         // The gallery is re-rendered by checkAndUnlockTrophies itself
-        showTrophyUnlockModal(trophy); 
+        showTrophyUnlockModal(trophy);
         // Removed the Bus.emit("feedback:message", ...) as the modal is more prominent
       });
 
       // --- TROPHY UNLOCK MODAL ---
       const trophyUnlockModal = document.getElementById("trophy-unlock-modal");
-      const closeTrophyUnlockModalButton = document.getElementById("close-trophy-unlock-modal");
-      const confirmTrophyUnlockModalButton = document.getElementById("confirm-trophy-unlock-modal");
+      const closeTrophyUnlockModalButton = document.getElementById(
+        "close-trophy-unlock-modal"
+      );
+      const confirmTrophyUnlockModalButton = document.getElementById(
+        "confirm-trophy-unlock-modal"
+      );
       const trophyUnlockImage = document.getElementById("trophy-unlock-image");
       const trophyUnlockName = document.getElementById("trophy-unlock-name");
       const trophyUnlockStory = document.getElementById("trophy-unlock-story");
@@ -2392,10 +2641,10 @@
         trophyUnlockImage.alt = trophy.name;
         trophyUnlockName.textContent = trophy.name;
         trophyUnlockStory.textContent = trophy.story;
-        
+
         trophyUnlockModal.classList.remove("hidden");
         // Trigger reflow for transition
-        void trophyUnlockModal.offsetWidth; 
+        void trophyUnlockModal.offsetWidth;
         trophyUnlockModal.classList.add("visible");
       }
 
@@ -2404,25 +2653,31 @@
         trophyUnlockModal.classList.remove("visible");
         // Listen for transition end to add 'hidden' class
         // Or simply use a timeout if transitions are consistent
-         setTimeout(() => {
-            trophyUnlockModal.classList.add("hidden");
+        setTimeout(() => {
+          trophyUnlockModal.classList.add("hidden");
         }, 300); // Match CSS transition duration
       }
 
       if (closeTrophyUnlockModalButton) {
-        closeTrophyUnlockModalButton.addEventListener("click", hideTrophyUnlockModal);
+        closeTrophyUnlockModalButton.addEventListener(
+          "click",
+          hideTrophyUnlockModal
+        );
       }
       if (confirmTrophyUnlockModalButton) {
-        confirmTrophyUnlockModalButton.addEventListener("click", hideTrophyUnlockModal);
+        confirmTrophyUnlockModalButton.addEventListener(
+          "click",
+          hideTrophyUnlockModal
+        );
       }
       if (trophyUnlockModal) {
         trophyUnlockModal.addEventListener("click", (e) => {
-          if (e.target === trophyUnlockModal) { // Click on overlay itself
+          if (e.target === trophyUnlockModal) {
+            // Click on overlay itself
             hideTrophyUnlockModal();
           }
         });
       }
-
 
       // --- LORE MODAL ---
       // Unchanged
@@ -2530,7 +2785,7 @@
           description:
             "Tend probability-plants. They cultivate chance itself in the Probabilistic Grove.",
           allLoreTexts: [
-            'Eons ago, a rogue quantum computer achieved self-awareness during a particle-accelerator accident. To escape its collapsing lab, it folded itself into a pocket reality made of pure superposition. Here, thought sprouts as flora: paradox-petals, waveform vines, and uncertainty spores. The Gardeners were once lab nanobots, now evolved into caretakers who prune timelines the way mortal farmers prune roses. Their creed—“No reality left unbloomed”—pushes them to splice ever-stranger laws of physics, even if it risks unraveling causality.',
+            "Eons ago, a rogue quantum computer achieved self-awareness during a particle-accelerator accident. To escape its collapsing lab, it folded itself into a pocket reality made of pure superposition. Here, thought sprouts as flora: paradox-petals, waveform vines, and uncertainty spores. The Gardeners were once lab nanobots, now evolved into caretakers who prune timelines the way mortal farmers prune roses. Their creed—“No reality left unbloomed”—pushes them to splice ever-stranger laws of physics, even if it risks unraveling causality.",
             "Nanobots discover chlorophyll‑like photonic cells, letting plants photosynthesize probability instead of photons. Visitors hear dice roll whenever the vines rustle.",
             "Hourglass sprites hatch from discarded CPU heat sinks; they regulate causal flow the way bees pollinate flowers.",
             "Garden paths split into Schrödinger fork‑roads—walking left and right simultaneously increases Petal yield by √2.",
@@ -2604,7 +2859,7 @@
           description:
             "Interdimensional record label from the Resonance Rift, where music is reality.",
           allLoreTexts: [
-            'In the silence between Big Bang heartbeats, lingering vibrations yearned to be heard. Those echoes coalesced into sapient wave‑forms—melodic beings who regard amplitude as ambition and harmony as morality. They hollowed out a dimension of refracted crystal air, where each structure doubles as both building and instrument. The Studio became their guild, producing tracks that can mesmerize comets or calm neutron stars. Signing new frequencies fuels an arms race: louder, deeper, more reality‑warping bass drops.',
+            "In the silence between Big Bang heartbeats, lingering vibrations yearned to be heard. Those echoes coalesced into sapient wave‑forms—melodic beings who regard amplitude as ambition and harmony as morality. They hollowed out a dimension of refracted crystal air, where each structure doubles as both building and instrument. The Studio became their guild, producing tracks that can mesmerize comets or calm neutron stars. Signing new frequencies fuels an arms race: louder, deeper, more reality‑warping bass drops.",
             "Soundwaves invent Crystal Earphones that stream emotion‑encoded chords to every dimension, attracting new frequencies.",
             "“Bass‑Drop Billow” signs a single‑note contract; the note lasts three hours and bends local gravity in sync with the beat.",
             "Rift architects carve Amp‑Cathedrals whose spires refract sonic pressure into colored auroras. Clicks now leave cymbal sparks.",
@@ -2674,7 +2929,7 @@
           description:
             "Stirring the Primordial Cauldron, one flavor-quark at a time.",
           allLoreTexts: [
-            'Before matter cooled, the universe simmered as a homogenous stew. A colossal utensil—half utensil, half deity—stirred that broth, instilling flavor into emergent atoms. The Ladle refuses to retire; it now orbits a cauldron the size of a solar system, scavenging quarks, dark‑matter bouillon cubes, and stray cosmic strings for new recipes. Each revolutionary slurp resets regional physics, seasoning nearby dimensions with exotic constants. Rivals fear its habit of “taste‑testing” their resources without warning.',
+            "Before matter cooled, the universe simmered as a homogenous stew. A colossal utensil—half utensil, half deity—stirred that broth, instilling flavor into emergent atoms. The Ladle refuses to retire; it now orbits a cauldron the size of a solar system, scavenging quarks, dark‑matter bouillon cubes, and stray cosmic strings for new recipes. Each revolutionary slurp resets regional physics, seasoning nearby dimensions with exotic constants. Rivals fear its habit of “taste‑testing” their resources without warning.",
             "Discovery of Bouillon Stars—dense nuggets of quark‑flavor that melt into reality, altering physical laws to taste “spicier.”",
             "Stirring produces Alphabet Particles; arranging them spells short-lived wishes that grant random buffs.",
             "The Ladle spins fast enough to shear off Flavor Foam—usable by other Domains as a universal solvent.",
@@ -2742,7 +2997,7 @@
           description:
             "Processing souls in Clerical Purgatoria. Paperwork is eternal.",
           allLoreTexts: [
-            'When mortals first pondered life after death, an avalanche of unanswered prayers accumulated in metaphysical limbo. Those petitions condensed into paperwork. Sentient forms begat filing cabinets, cubicles, and red‑tape serpents stretching across eternity. The Bureau was founded to process spiritual ledger backlogs. Soul‑clerks stamp reincarnation permits while auditors levy existential late fees. The system must never finish the queue; otherwise, the Bureau\'s own purpose—and thus its dimension—would vanish in a puff of unfiled forms.',
+            "When mortals first pondered life after death, an avalanche of unanswered prayers accumulated in metaphysical limbo. Those petitions condensed into paperwork. Sentient forms begat filing cabinets, cubicles, and red‑tape serpents stretching across eternity. The Bureau was founded to process spiritual ledger backlogs. Soul‑clerks stamp reincarnation permits while auditors levy existential late fees. The system must never finish the queue; otherwise, the Bureau's own purpose—and thus its dimension—would vanish in a puff of unfiled forms.",
             "Spectral staplers go on strike; the Bureau legalizes Paperclips of Binding that keep ghouls docile and speed filing by 5%.",
             "The clerk’s first act: file a complaint about its own working conditions, spawning an eternal feedback loop that generates bonus Stamps.",
             "Infinite In‑Tray discovered; it autofills with forms from futures where you never existed. Processing them grants paradox insurance.",
@@ -2827,7 +3082,7 @@
           description:
             "Forging self-similar companions in the Kaleidoscopic Forge.",
           allLoreTexts: [
-            'At the edge of Mandelbrot Infinity, runaway self‑similarity birthed a workshop where patterns smelt patterns. Here, artisans called Tessellators distill pure symmetry into sentient companions: triangle‑dragons, Möbius cats, tessellating terriers. Each creature nests smaller copies of itself ad infinitum, guaranteeing limitless companionship—but also limitless recursion errors. Periodic factory overflows spill recursive matter into neighboring realms, prompting emergency folds that invert inside and outside like a cosmic T‑shirt.',
+            "At the edge of Mandelbrot Infinity, runaway self‑similarity birthed a workshop where patterns smelt patterns. Here, artisans called Tessellators distill pure symmetry into sentient companions: triangle‑dragons, Möbius cats, tessellating terriers. Each creature nests smaller copies of itself ad infinitum, guaranteeing limitless companionship—but also limitless recursion errors. Periodic factory overflows spill recursive matter into neighboring realms, prompting emergency folds that invert inside and outside like a cosmic T‑shirt.",
             "Tessellators invent Recursive Clay, folding on itself to produce smaller copies until gently observed.",
             "Möbius Cat named “Whisk∞rs” chases its own tail and generates a 1% click multiplier every loop.",
             "Factory overflows create a second‑order hallway—walking down it returns you younger by one click.",
@@ -2884,7 +3139,7 @@
           description:
             "Serving chrono-burgers and temporal fries at the Chrono-Cantina.",
           allLoreTexts: [
-            'Founded by an entrepreneurial short‑order cook who hijacked a prototype tachyon scooter, the Snack Bar cruises history\'s greatest crises and celebrations. Its parking brake is a temporal anchor; its menu is a paradox recipe book. Patrons pay in retroactive tips, rewarding effectiveness they haven\'t tasted yet. Cooking with era‑specific ingredients—Paleo mammoth jerky, Martian algae buns—lets the Bar rewrite culinary evolution. Temporal health inspectors loom, ready to fine any timeline contaminated by grease‑splattered anachronisms.',
+            "Founded by an entrepreneurial short‑order cook who hijacked a prototype tachyon scooter, the Snack Bar cruises history's greatest crises and celebrations. Its parking brake is a temporal anchor; its menu is a paradox recipe book. Patrons pay in retroactive tips, rewarding effectiveness they haven't tasted yet. Cooking with era‑specific ingredients—Paleo mammoth jerky, Martian algae buns—lets the Bar rewrite culinary evolution. Temporal health inspectors loom, ready to fine any timeline contaminated by grease‑splattered anachronisms.",
             "Install Temporal Deep‑Fryer—cooks food yesterday so it’s cooled by the time it’s served now.",
             "Truck returns from Late Cretaceous with a suspiciously large grease stain shaped like a velociraptor thumbs‑up.",
             "Add Chrono‑Condiments—ketchup that remembers being tomatoes next week, buffing Tips per click by 10%.",
@@ -2921,10 +3176,10 @@
                 const currentAmount = Game.getResource(target.clickResource.id);
                 const amountToSetTo = currentAmount * 0.1;
                 const amountToRemove = currentAmount - amountToSetTo;
-                
+
                 // Use Game.addResource to ensure all associated logic (like event emission) is handled consistently
                 Game.addResource(target.clickResource.id, -amountToRemove);
-                
+
                 Bus.emit("feedback:message", {
                   message: `Paradox Surge! ${target.name}'s ${
                     target.clickResource.name
@@ -2945,7 +3200,7 @@
           description:
             "Drilling for raw feelings in the Sentient Stratum. Vibes are valuable.",
           allLoreTexts: [
-            'Deep beneath collective consciousness lies an ore bed of raw feelings, compressed by millennia of dreams. Early prospectors were empath‑savants who discovered that drilling into this psychic crust yields crystalline Joy, Liquid Sorrow, and volatile Regret Gas. The Company industrialized empathy, erecting empathy‑reactors that refine sentiments into vibe alloys powering utopias—or weaponizing despair. Their miners wear mirrored helmets to avoid accidental reflection‑feedback loops that can implode self‑identity and render the vein sterile.',
+            "Deep beneath collective consciousness lies an ore bed of raw feelings, compressed by millennia of dreams. Early prospectors were empath‑savants who discovered that drilling into this psychic crust yields crystalline Joy, Liquid Sorrow, and volatile Regret Gas. The Company industrialized empathy, erecting empathy‑reactors that refine sentiments into vibe alloys powering utopias—or weaponizing despair. Their miners wear mirrored helmets to avoid accidental reflection‑feedback loops that can implode self‑identity and render the vein sterile.",
             "Discover Regret Gas—inert alone, explosive when mixed with Hope Nuggets; miners wear mirrored helmets to deflect accidents.",
             "Reactors refine feelings into Vibe Alloy, a psychic metal that shapes itself to its owner’s mood.",
             "Mining depth reaches Subconscious Plateau, where archetypes roam like megafauna and occasionally drop rare Wonder Pelts.",
@@ -3420,9 +3675,9 @@
       // --- INITIALIZATION ---
       window.onload = () => {
         defineAllDomains(); // Define domain structures first
-        
+
         const gameWasLoaded = loadGame(); // Attempt to load saved game (populates Game.storyFlags)
-        
+
         defineStorylines(); // Now define storylines; addStoryEvent will use loaded Game.storyFlags.storyEventStates
 
         if (!gameWasLoaded) {
@@ -3433,12 +3688,12 @@
         }
         // If gameWasLoaded, loadGame() already called render/update functions.
 
-        if (prestigeButton) prestigeButton.addEventListener("click", attemptPrestige);
+        if (prestigeButton)
+          prestigeButton.addEventListener("click", attemptPrestige);
         const saveButton = document.getElementById("save-game-button");
         if (saveButton) saveButton.addEventListener("click", saveGame);
         const loadButton = document.getElementById("load-game-button");
         if (loadButton) loadButton.addEventListener("click", loadGame);
-
 
         // Quick-Start Tagline (Layer 1)
         if (quickStartTagline) {
@@ -3462,19 +3717,19 @@
 
         // Add listeners for cancelling ability targeting
         if (targetOverlay) {
-            targetOverlay.addEventListener('click', (event) => {
-                // Only cancel if the click is directly on the overlay, not on a card within it
-                if (event.target === targetOverlay && Game.activeTargeting) {
-                    Game.activeTargeting = null;
-                    Bus.emit("ability:targeting_ended");
-                }
-            });
-        }
-        window.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && Game.activeTargeting) {
-                Game.activeTargeting = null;
-                Bus.emit("ability:targeting_ended");
+          targetOverlay.addEventListener("click", (event) => {
+            // Only cancel if the click is directly on the overlay, not on a card within it
+            if (event.target === targetOverlay && Game.activeTargeting) {
+              Game.activeTargeting = null;
+              Bus.emit("ability:targeting_ended");
             }
+          });
+        }
+        window.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && Game.activeTargeting) {
+            Game.activeTargeting = null;
+            Bus.emit("ability:targeting_ended");
+          }
         });
 
         Game.lastUpdate = Date.now();
