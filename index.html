@@ -1879,9 +1879,13 @@
           trophyEl.appendChild(img);
           tooltipText.innerHTML = `<strong>${trophy.name}</strong>${trophy.story}`;
         } else {
-          // For locked trophies, the ::after pseudo-element shows the '?'
-          // No img tag is needed.
-          tooltipText.innerHTML = `<strong>Locked</strong>Remain observant. The Conflux will reveal its secrets in time.`;
+          // For locked trophies, the ::after pseudo-element shows the '?' on the main icon.
+          // The tooltip will now show the actual image and story.
+          // No main img tag is needed in trophyEl for locked items.
+          tooltipText.innerHTML = `
+            <img src="${trophy.imagePath}" alt="${trophy.name}" style="width: 60px; height: 60px; margin-bottom: 8px; border-radius: 4px; display: block; margin-left: auto; margin-right: auto;">
+            <strong>${trophy.name} (Locked)</strong>
+            ${trophy.story}`;
         }
 
         trophyEl.appendChild(tooltipText);
