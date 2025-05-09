@@ -3836,16 +3836,17 @@
 
         registerLore("gardeners", 5, () => Game.storyFlags.gardeners_castCollapseCertaintyOnce === true, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.gardeners.lore_level_5);
         
-        registerLore("gardeners", 6, () => Game.domains.gardeners?.generators.find((g) => g.id === "timelineBloomer")?.level >= 25);
+        registerLore("gardeners", 6, () => Game.domains.gardeners?.generators.find((g) => g.id === "timelineBloomer")?.level >= 25); // No specific audio for lore 6 in map
         
-        registerLore("gardeners", 7, () => getDomainLevel("gardeners") >= 25 && getDomainLevel("soundwaves") >= 25);
+        registerLore("gardeners", 7, () => getDomainLevel("gardeners") >= 25 && getDomainLevel("soundwaves") >= 25); // No specific audio for lore 7 in map
         
         registerLore("gardeners", 8, () => getDomainLevel("gardeners") >= 50, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.gardeners.lore_level_8);
         
-        addStoryEvent("gardeners_level_50_generators_audio", () => getDomainLevel("gardeners") >= 50 && !Game.storyFlags.played_audio_gardeners_gen_level_50,
-          "Gardeners generators reach level 50!", true, () => Game.storyFlags.played_audio_gardeners_gen_level_50 = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.gardeners.generator_milestone_level_50_total);
+        // gardeners_14_level_fifty.mp3 (generator_milestone_level_50_total)
+        addStoryEvent("gardeners_level_50_generators_audio", () => getDomainLevel("gardeners") >= 50 && !Game.storyFlags.played_audio_gardeners_generator_milestone_level_50_total,
+          "Gardeners generators reach level 50!", true, () => Game.storyFlags.played_audio_gardeners_generator_milestone_level_50_total = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.gardeners.generator_milestone_level_50_total);
 
-        registerLore("gardeners", 9, () => Game.storyFlags.rivalsTargetedByAbilities.size >= 5);
+        registerLore("gardeners", 9, () => Game.storyFlags.rivalsTargetedByAbilities.size >= 5); // No specific audio for lore 9 in map
         
         registerLore("gardeners", 10, () => getDomainLevel("gardeners") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.gardeners.lore_level_10);
 
@@ -3856,59 +3857,19 @@
           "Cosmic Artist hired!", true, () => Game.storyFlags.played_audio_soundwaves_first_generator_cosmicArtist = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.first_generator_cosmicArtist);
         addStoryEvent("soundwaves_resource_milestone_1k_audio", () => Game.getResource("echoRoyalty") >= 1000 && !Game.storyFlags.played_audio_soundwaves_res_1k_echoRoyalty,
           "1000 Echoes!", true, () => Game.storyFlags.played_audio_soundwaves_res_1k_echoRoyalty = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.resource_milestone_1000_echoRoyalty);
-        addStoryEvent("soundwaves_level_50_generators_audio", () => getDomainLevel("soundwaves") >= 50 && !Game.storyFlags.played_audio_soundwaves_gen_level_50,
-          "Soundwaves generators reach level 50!", true, () => Game.storyFlags.played_audio_soundwaves_gen_level_50 = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.generator_milestone_level_50_total);
+        addStoryEvent("soundwaves_level_50_generators_audio", () => getDomainLevel("soundwaves") >= 50 && !Game.storyFlags.played_audio_soundwaves_generator_milestone_level_50_total,
+          "Soundwaves generators reach level 50!", true, () => Game.storyFlags.played_audio_soundwaves_generator_milestone_level_50_total = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.generator_milestone_level_50_total);
 
-        registerLore(
-          "soundwaves",
-          1,
-          () => Game.getResource("echoRoyalty") > 0
-        );
-        registerLore(
-          "soundwaves",
-          2,
-          () => Game.getResource("echoRoyalty") >= 100
-        );
-        registerLore(
-          "soundwaves",
-          3,
-          () =>
-            Game.domains.soundwaves?.generators.find(
-              (g) => g.id === "cosmicArtist"
-            )?.level >= 1
-        );
-        registerLore("soundwaves", 4, () => getDomainLevel("soundwaves") >= 10);
-        registerLore(
-          "soundwaves",
-          5,
-          () => Game.storyFlags.soundwaves_castDissonanceBurstOnce === true
-        );
-        registerLore(
-          "soundwaves",
-          6,
-          () =>
-            Game.domains.soundwaves?.generators.find(
-              (g) => g.id === "cosmicArtist"
-            )?.level >= 25
-        );
-        registerLore(
-          "soundwaves",
-          7,
-          () =>
-            getDomainLevel("soundwaves") >= 25 &&
-            getDomainLevel("emotions") >= 25
-        );
-        registerLore("soundwaves", 8, () => getDomainLevel("soundwaves") >= 50);
-        registerLore(
-          "soundwaves",
-          9,
-          () => Game.realityStrain / Game.maxRealityStrain >= 0.6
-        );
-        registerLore(
-          "soundwaves",
-          10,
-          () => getDomainLevel("soundwaves") >= 100
-        );
+        registerLore("soundwaves", 1, () => Game.getResource("echoRoyalty") > 0); // Intro audio handled by domain unlock or genesis
+        registerLore("soundwaves", 2, () => Game.getResource("echoRoyalty") >= 100);
+        registerLore("soundwaves", 3, () => Game.domains.soundwaves?.generators.find((g) => g.id === "cosmicArtist")?.level >= 1); // First generator audio handled by addStoryEvent
+        registerLore("soundwaves", 4, () => getDomainLevel("soundwaves") >= 10, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.lore_level_X_bass_drop); // soundwaves_04_bass_drop.mp3
+        registerLore("soundwaves", 5, () => Game.storyFlags.soundwaves_castDissonanceBurstOnce === true, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.lore_level_Y_silence_harvested); // soundwaves_08_silence_harvested.mp3 (Ability cast audio is separate)
+        registerLore("soundwaves", 6, () => Game.domains.soundwaves?.generators.find((g) => g.id === "cosmicArtist")?.level >= 25, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.lore_level_6_loop_song); // soundwaves_10_loop_song.mp3
+        registerLore("soundwaves", 7, () => getDomainLevel("soundwaves") >= 25 && getDomainLevel("emotions") >= 25, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.lore_level_7_amp_cathedral); // soundwaves_07_amp_cathedral_complete.mp3
+        registerLore("soundwaves", 8, () => getDomainLevel("soundwaves") >= 50); // No specific audio for lore 8 in map (silence_harvested was Y, assigned to 5)
+        registerLore("soundwaves", 9, () => Game.realityStrain / Game.maxRealityStrain >= 0.6);
+        registerLore("soundwaves", 10, () => getDomainLevel("soundwaves") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.lore_level_10);
 
         // 🍲 Cosmic Soup Ladle Lore
         registerLore("soup", 1, () => Game.getResource("flavorQuark") > 0);
@@ -3946,59 +3907,28 @@
           9,
           () => Game.storyFlags.soup_slurpsThisPrestige >= 3
         );
-        registerLore("soup", 10, () => getDomainLevel("soup") >= 100);
+        registerLore("soup", 10, () => getDomainLevel("soup") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soup.lore_level_10);
 
         // 📑 Bureaucratic Afterlives Lore
-        registerLore(
-          "afterlives",
-          1,
-          () => Game.getResource("existentialStamp") > 0
-        );
-        registerLore(
-          "afterlives",
-          2,
-          () => Game.getResource("existentialStamp") >= 100
-        );
-        registerLore(
-          "afterlives",
-          3,
-          () =>
-            Game.domains.afterlives?.generators.find(
-              (g) => g.id === "soulClerk"
-            )?.level >= 1
-        );
-        registerLore("afterlives", 4, () => getDomainLevel("afterlives") >= 10);
-        registerLore(
-          "afterlives",
-          5,
-          () => Game.storyFlags.afterlives_castAuditRivalOnce === true
-        );
-        registerLore(
-          "afterlives",
-          6,
-          () =>
-            Game.domains.afterlives?.generators.find(
-              (g) => g.id === "soulClerk"
-            )?.level >= 25
-        );
-        registerLore(
-          "afterlives",
-          7,
-          () =>
-            getDomainLevel("afterlives") >= 25 &&
-            getDomainLevel("gardeners") >= 25
-        );
-        registerLore("afterlives", 8, () => getDomainLevel("afterlives") >= 50);
-        registerLore(
-          "afterlives",
-          9,
-          () => Game.storyFlags.afterlives_auditedRivals.size >= 5
-        );
-        registerLore(
-          "afterlives",
-          10,
-          () => getDomainLevel("afterlives") >= 100
-        );
+        addStoryEvent("afterlives_first_stamp_audio", () => Game.getResource("existentialStamp") > 0 && Game.domains.afterlives.unlocked && !Game.storyFlags.played_audio_afterlives_first_resource_existentialStamp,
+          "First Existential Stamp!", true, () => Game.storyFlags.played_audio_afterlives_first_resource_existentialStamp = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.afterlives.first_resource_existentialStamp);
+        addStoryEvent("afterlives_first_generator_audio", () => Game.domains.afterlives?.generators.find(g=>g.id === 'soulClerk')?.level >= 1 && !Game.storyFlags.played_audio_afterlives_first_generator_soulClerk,
+          "Soul Clerk hired!", true, () => Game.storyFlags.played_audio_afterlives_first_generator_soulClerk = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.afterlives.first_generator_soulClerk);
+        addStoryEvent("afterlives_resource_milestone_1k_audio", () => Game.getResource("existentialStamp") >= 1000 && !Game.storyFlags.played_audio_afterlives_resource_milestone_1000_existentialStamp,
+          "1000 Existential Stamps!", true, () => Game.storyFlags.played_audio_afterlives_resource_milestone_1000_existentialStamp = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.afterlives.resource_milestone_1000_existentialStamp);
+        addStoryEvent("afterlives_level_50_generators_audio", () => getDomainLevel("afterlives") >= 50 && !Game.storyFlags.played_audio_afterlives_generator_milestone_level_50_total,
+          "Afterlives generators reach level 50!", true, () => Game.storyFlags.played_audio_afterlives_generator_milestone_level_50_total = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.afterlives.generator_milestone_level_50_total);
+
+        registerLore("afterlives", 1, () => Game.getResource("existentialStamp") > 0);
+        registerLore("afterlives", 2, () => Game.getResource("existentialStamp") >= 100);
+        registerLore("afterlives", 3, () => Game.domains.afterlives?.generators.find((g) => g.id === "soulClerk")?.level >= 1, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.afterlives.lore_level_X_in_tray); // afterlives_06_infinite_in_tray.mp3
+        registerLore("afterlives", 4, () => getDomainLevel("afterlives") >= 10, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.afterlives.lore_level_Z_debt_gremlins); // afterlives_13_debt_gremlins.mp3
+        registerLore("afterlives", 5, () => Game.storyFlags.afterlives_castAuditRivalOnce === true); // Ability cast audio is separate
+        registerLore("afterlives", 6, () => Game.domains.afterlives?.generators.find((g) => g.id === "soulClerk")?.level >= 25);
+        registerLore("afterlives", 7, () => getDomainLevel("afterlives") >= 25 && getDomainLevel("gardeners") >= 25, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.afterlives.lore_level_Y_union); // afterlives_07_union_formed.mp3
+        registerLore("afterlives", 8, () => getDomainLevel("afterlives") >= 50, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.afterlives.lore_level_W_compliance); // afterlives_14_metaphysical_compliance.mp3
+        registerLore("afterlives", 9, () => Game.storyFlags.afterlives_auditedRivals.size >= 5);
+        registerLore("afterlives", 10, () => getDomainLevel("afterlives") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.afterlives.lore_level_10);
 
         // 🔷 Fractal Friend Factory Lore
         registerLore(
@@ -4044,45 +3974,28 @@
           9,
           () => Game.realityStrain / Game.maxRealityStrain >= 0.7
         );
-        registerLore("fractals", 10, () => getDomainLevel("fractals") >= 100);
+        registerLore("fractals", 10, () => getDomainLevel("fractals") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.fractals.lore_level_10);
 
         // ⏰ Time-Traveling Snack Bar Lore
+        addStoryEvent("snackbar_first_tip_audio", () => Game.getResource("chronoTip") > 0 && Game.domains.snackbar.unlocked && !Game.storyFlags.played_audio_snackbar_first_resource_chronoTip,
+          "First Chrono Tip!", true, () => Game.storyFlags.played_audio_snackbar_first_resource_chronoTip = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.snackbar.first_resource_chronoTip);
+        addStoryEvent("snackbar_first_generator_audio", () => Game.domains.snackbar?.generators.find(g=>g.id === 'eraFoodTruck')?.level >= 1 && !Game.storyFlags.played_audio_snackbar_first_generator_eraFoodTruck,
+          "Era Food Truck bought!", true, () => Game.storyFlags.played_audio_snackbar_first_generator_eraFoodTruck = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.snackbar.first_generator_eraFoodTruck);
+        addStoryEvent("snackbar_resource_milestone_1k_audio", () => Game.getResource("chronoTip") >= 1000 && !Game.storyFlags.played_audio_snackbar_resource_milestone_1000_chronoTip,
+          "1000 Chrono Tips!", true, () => Game.storyFlags.played_audio_snackbar_resource_milestone_1000_chronoTip = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.snackbar.resource_milestone_1000_chronoTip);
+        addStoryEvent("snackbar_level_50_generators_audio", () => getDomainLevel("snackbar") >= 50 && !Game.storyFlags.played_audio_snackbar_generator_milestone_level_50_total,
+          "Snackbar generators reach level 50!", true, () => Game.storyFlags.played_audio_snackbar_generator_milestone_level_50_total = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.snackbar.generator_milestone_level_50_total);
+
         registerLore("snackbar", 1, () => Game.getResource("chronoTip") > 0);
-        registerLore("snackbar", 2, () => Game.getResource("chronoTip") >= 100);
-        registerLore(
-          "snackbar",
-          3,
-          () =>
-            Game.domains.snackbar?.generators.find(
-              (g) => g.id === "eraFoodTruck"
-            )?.level >= 1
-        );
+        registerLore("snackbar", 2, () => Game.getResource("chronoTip") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.snackbar.lore_level_X_fryer); // snackbar_06_temporal_fryer.mp3
+        registerLore("snackbar", 3, () => Game.domains.snackbar?.generators.find((g) => g.id === "eraFoodTruck")?.level >= 1);
         registerLore("snackbar", 4, () => getDomainLevel("snackbar") >= 10);
-        registerLore(
-          "snackbar",
-          5,
-          () => Game.storyFlags.snackbar_castParadoxSurgeOnce === true
-        );
-        registerLore(
-          "snackbar",
-          6,
-          () =>
-            Game.domains.snackbar?.generators.find(
-              (g) => g.id === "eraFoodTruck"
-            )?.level >= 25
-        );
-        registerLore(
-          "snackbar",
-          7,
-          () => getDomainLevel("snackbar") >= 25 && getDomainLevel("soup") >= 25
-        );
-        registerLore("snackbar", 8, () => getDomainLevel("snackbar") >= 50);
-        registerLore(
-          "snackbar",
-          9,
-          () => Game.storyFlags.snackbar_surgesThisPrestige >= 3
-        );
-        registerLore("snackbar", 10, () => getDomainLevel("snackbar") >= 100);
+        registerLore("snackbar", 5, () => Game.storyFlags.snackbar_castParadoxSurgeOnce === true); // Ability cast audio is separate
+        registerLore("snackbar", 6, () => Game.domains.snackbar?.generators.find((g) => g.id === "eraFoodTruck")?.level >= 25, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.snackbar.lore_level_Z_ramen); // snackbar_13_epoch_ramen.mp3
+        registerLore("snackbar", 7, () => getDomainLevel("snackbar") >= 25 && getDomainLevel("soup") >= 25, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.snackbar.lore_level_Y_inspection); // snackbar_07_health_inspection_passed.mp3
+        registerLore("snackbar", 8, () => getDomainLevel("snackbar") >= 50, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.snackbar.lore_level_W_insurance); // snackbar_14_insurance_claim.mp3
+        registerLore("snackbar", 9, () => Game.storyFlags.snackbar_surgesThisPrestige >= 3);
+        registerLore("snackbar", 10, () => getDomainLevel("snackbar") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.snackbar.lore_level_10);
 
         // 💠 Emotion Mining Co. Lore
         registerLore("emotions", 1, () => Game.getResource("vibeOre") > 0);
