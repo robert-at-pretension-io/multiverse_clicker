@@ -29,11 +29,69 @@
         border-radius: 0.5rem; /* rounded-lg */
         padding: 1rem; /* p-4 */
         margin-bottom: 1rem; /* mb-4 */
-        transition: box-shadow 0.3s ease, outline 0.2s ease;
+        transition: box-shadow 0.3s ease, outline 0.2s ease, border-color 0.3s ease; /* Added border-color transition */
       }
+      /* Generic hover for non-specific cards, if any. Specific styles will override. */
       .domain-card:hover {
-        box-shadow: 0 0 15px rgba(79, 70, 229, 0.5); /* shadow-indigo-500/50 */
+        /* box-shadow: 0 0 15px rgba(79, 70, 229, 0.5); /* shadow-indigo-500/50 - Removed generic shadow */
       }
+
+      /* Gardener: Organic, Quantum Green */
+      .domain-card-gardeners {
+        border-color: #34D399; /* domain.color */
+      }
+      .domain-card-gardeners:hover {
+        box-shadow: 0 0 20px rgba(52, 211, 153, 0.7); /* Brighter green glow */
+      }
+
+      /* Soundwaves: Resonant, Electric Blue */
+      .domain-card-soundwaves {
+        border-color: #60A5FA; /* domain.color */
+      }
+      .domain-card-soundwaves:hover {
+        box-shadow: 0 0 20px rgba(96, 165, 250, 0.7); /* Bright blue glow */
+      }
+
+      /* Soup: Warm, Cosmic Amber/Yellow */
+      .domain-card-soup {
+        border-color: #FBBF24; /* domain.color */
+      }
+      .domain-card-soup:hover {
+        box-shadow: 0 0 20px rgba(251, 191, 36, 0.7); /* Golden yellow glow */
+      }
+
+      /* Afterlives: Ethereal, Spectral Purple */
+      .domain-card-afterlives {
+        border-color: #A78BFA; /* domain.color */
+      }
+      .domain-card-afterlives:hover {
+        box-shadow: 0 0 20px rgba(167, 139, 250, 0.6); /* Lavender glow */
+      }
+
+      /* Fractals: Geometric, Vibrant Pink */
+      .domain-card-fractals {
+        border-color: #F472B6; /* domain.color */
+      }
+      .domain-card-fractals:hover {
+        box-shadow: 0 0 20px rgba(244, 114, 182, 0.7); /* Bright pink glow */
+      }
+
+      /* Snackbar: Temporal, Energetic Orange */
+      .domain-card-snackbar {
+        border-color: #FB923C; /* domain.color */
+      }
+      .domain-card-snackbar:hover {
+        box-shadow: 0 0 20px rgba(251, 146, 60, 0.7); /* Fiery orange glow */
+      }
+
+      /* Emotions: Psychic, Moody Indigo */
+      .domain-card-emotions {
+        border-color: #818CF8; /* domain.color */
+      }
+      .domain-card-emotions:hover {
+        box-shadow: 0 0 20px rgba(129, 140, 248, 0.6); /* Indigo glow */
+      }
+
       .btn {
         padding: 0.5rem 1rem;
         border-radius: 0.375rem; /* rounded-md */
@@ -2594,8 +2652,8 @@
       function renderDomainCard(domain) {
         const card = document.createElement("div");
         card.id = `domain-${domain.id}`;
-        card.className = "domain-card flex flex-col space-y-3";
-        card.style.borderColor = domain.color || "#374151";
+        card.className = `domain-card ${domain.cardStyleClass || ""} flex flex-col space-y-3`;
+        // card.style.borderColor = domain.color || "#374151"; // Border color now handled by CSS class
 
         let generatorsHTML = domain.generators
           .map((gen) => {
@@ -3263,6 +3321,7 @@
           id: "gardeners",
           name: "Quantum Gardeners",
           color: "#34D399",
+          cardStyleClass: "domain-card-gardeners",
           description:
             "Tend probability-plants. They cultivate chance itself in the Probabilistic Grove.",
           allLoreTexts: [
@@ -3337,6 +3396,7 @@
           id: "soundwaves",
           name: "Sentient Soundwaves",
           color: "#60A5FA",
+          cardStyleClass: "domain-card-soundwaves",
           description:
             "Interdimensional record label from the Resonance Rift, where music is reality.",
           allLoreTexts: [
@@ -3407,6 +3467,7 @@
           id: "soup",
           name: "Cosmic Soup Ladle",
           color: "#FBBF24",
+          cardStyleClass: "domain-card-soup",
           description:
             "Stirring the Primordial Cauldron, one flavor-quark at a time.",
           allLoreTexts: [
@@ -3475,6 +3536,7 @@
           id: "afterlives",
           name: "Bureaucratic Afterlives",
           color: "#A78BFA",
+          cardStyleClass: "domain-card-afterlives",
           description:
             "Processing souls in Clerical Purgatoria. Paperwork is eternal.",
           allLoreTexts: [
@@ -3560,6 +3622,7 @@
           id: "fractals",
           name: "Fractal Friend Factory",
           color: "#F472B6",
+          cardStyleClass: "domain-card-fractals",
           description:
             "Forging self-similar companions in the Kaleidoscopic Forge.",
           allLoreTexts: [
@@ -3617,6 +3680,7 @@
           id: "snackbar",
           name: "Time-Traveling Snack Bar",
           color: "#FB923C",
+          cardStyleClass: "domain-card-snackbar",
           description:
             "Serving chrono-burgers and temporal fries at the Chrono-Cantina.",
           allLoreTexts: [
@@ -3678,6 +3742,7 @@
           id: "emotions",
           name: "Emotion Mining Co.",
           color: "#818CF8",
+          cardStyleClass: "domain-card-emotions",
           description:
             "Drilling for raw feelings in the Sentient Stratum. Vibes are valuable.",
           allLoreTexts: [
