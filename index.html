@@ -1156,7 +1156,7 @@
         Game.domains[cfg.id] = {
           ...cfg,
           level: 0,
-          unlocked: cfg.id === DOMAIN_UNLOCK_ORDER[0], // Unlock the first domain by default
+          unlocked: cfg.id === DOMAIN_UNLOCK_ORDER[0], // Only unlock the very first domain initially
           generators: (cfg.generators || []).map((g) => ({
             ...g,
             level: 0,
@@ -1425,7 +1425,7 @@
         Game.buffs = activeBuffs;
 
         Bus.emit("tick", dtMs);
-        checkAndUnlockNextDomain(); // Check for new domain unlocks
+        // checkAndUnlockNextDomain(); // Removed - Domain unlocking tied to prestige now
         checkAndUnlockTrophies(); // Check for new trophy unlocks
         
         // Global Audio Triggers in Tick
@@ -1545,9 +1545,17 @@
               ) /
                 20
           );
+          const previousPrestigeCount = Game.prestigeCount;
           Game.entropyTokens += tokensEarned;
-          Game.prestigeCount++;
+          Game.prestigeCount++; // Increment prestige count *before* resetting unlocks
           Game.resources = {};
+          
+          // Determine newly unlocked domain *before* resetting loop
+          const newlyUnlockedDomainIndex = Game.prestigeCount; // e.g., after 1st prestige (count=1), unlock index 1
+          const newlyUnlockedDomainId = (newlyUnlockedDomainIndex < DOMAIN_UNLOCK_ORDER.length) 
+                                        ? DOMAIN_UNLOCK_ORDER[newlyUnlockedDomainIndex] 
+                                        : null;
+
           Object.values(Game.domains).forEach((d) => {
             d.level = 0;
             d.generators.forEach((g) => {
@@ -1556,7 +1564,9 @@
               delete g.costMultiplier;
             });
             d.abilities.forEach((a) => (a.nextUse = 0));
-            d.unlocked = (d.id === DOMAIN_UNLOCK_ORDER[0]); // Reset unlock status
+            // Unlock domains up to the current prestige count
+            const domainIndex = DOMAIN_UNLOCK_ORDER.indexOf(d.id);
+            d.unlocked = (domainIndex !== -1 && domainIndex <= Game.prestigeCount); 
             Game.addResource(d.clickResource.id, 0);
             // d.unlockedLoreLevel remains, as lore unlocks are persistent across prestiges.
           });
@@ -1606,7 +1616,14 @@
           Bus.emit("game:prestiged", {
             tokensEarned,
             totalTokens: Game.entropyTokens,
+            newlyUnlockedDomainId: newlyUnlockedDomainId // Pass this info if needed elsewhere
           });
+
+          // Emit unlock event for the newly unlocked domain
+          if (newlyUnlockedDomainId) {
+             Bus.emit("domain:unlocked", { domainId: newlyUnlockedDomainId, isInitialUnlock: false });
+          }
+
           Bus.emit("feedback:message", {
             message: `🌌 CONFLUX COLLAPSED! 🌌<br>You earned <strong style="color: #FCD34D;">${tokensEarned}</strong> Entropy Token(s)!<br>Total: <strong style="color: #A78BFA;">${Game.entropyTokens}</strong> Tokens.<br>Global Production: <strong style="color: #6EE7B7;">+${Game.entropyTokens}%</strong>, Click Power: <strong style="color: #6EE7B7;">+${(Game.entropyTokens * 0.5).toFixed(1)}%</strong>.<br>A new cycle begins with enhanced potential!`,
             type: "success",
@@ -2425,7 +2442,7 @@
         }
       }
 
-      // --- DOMAIN UNLOCK LOGIC ---
+      // --- DOMAIN UNLOCK LOGIC (Removed - Now handled by prestige) ---
       const DOMAIN_INTRO_AUDIO = {
         "gardeners": "out_audio/gardeners_01_intro.mp3", // Often tied to initial game start
         "soundwaves": "out_audio/soundwaves_01_intro.mp3",
@@ -2436,75 +2453,7 @@
         "afterlives": "out_audio/afterlives_01_intro.mp3"
       };
 
-      function checkAndUnlockNextDomain() {
-        let previousDomainId = null;
-        let newDomainUnlockedThisTick = false;
-
-        const domainsToConsider = Game.prestigeCount === 0 
-            ? DOMAIN_UNLOCK_ORDER.slice(0, 4) // Only first 4 domains if no prestige yet
-            : DOMAIN_UNLOCK_ORDER;
-
-        for (const domainId of domainsToConsider) {
-            const domain = Game.domains[domainId];
-            if (!domain) {
-                console.warn(`Domain ${domainId} not found in Game.domains during unlock check.`);
-                continue;
-            }
-
-            if (domain.unlocked) {
-                previousDomainId = domainId;
-                continue; 
-            }
-
-            if (domainId === DOMAIN_UNLOCK_ORDER[0]) { // First domain
-                if (!domain.unlocked) { // Should be unlocked by defineDomain
-                    domain.unlocked = true;
-                    Bus.emit("domain:unlocked", { domainId, isInitialUnlock: true });
-                    newDomainUnlockedThisTick = true;
-                }
-                previousDomainId = domainId;
-                continue;
-            }
-            
-            if (!previousDomainId) {
-                console.error("Unlock logic error: No previous unlocked domain found for", domainId);
-                break; 
-            }
-
-            const prevDomain = Game.domains[previousDomainId];
-            if (!prevDomain) {
-                 console.error(`Previous domain ${previousDomainId} not found for unlocking ${domainId}`);
-                 break;
-            }
-
-            let conditionMet = false;
-            if (domainId === "soundwaves" && prevDomain.id === "gardeners") {
-                conditionMet = prevDomain.generators.find(g => g.id === 'timelineBloomer')?.level >= 5;
-            } else if (domainId === "emotions" && prevDomain.id === "soundwaves") {
-                conditionMet = prevDomain.generators.find(g => g.id === 'cosmicArtist')?.level >= 5;
-            } else if (domainId === "soup" && prevDomain.id === "emotions") {
-                conditionMet = prevDomain.generators.find(g => g.id === 'empathyReactor')?.level >= 5;
-            } else if (domainId === "snackbar" && prevDomain.id === "soup") {
-                conditionMet = prevDomain.generators.find(g => g.id === 'primordialBroth')?.level >= 5;
-            } else if (domainId === "fractals" && prevDomain.id === "snackbar") {
-                conditionMet = prevDomain.generators.find(g => g.id === 'eraFoodTruck')?.level >= 5;
-            } else if (domainId === "afterlives" && prevDomain.id === "fractals") {
-                conditionMet = prevDomain.generators.find(g => g.id === 'fractalPet')?.level >= 5;
-            }
-
-            if (conditionMet) {
-                domain.unlocked = true;
-                Bus.emit("domain:unlocked", { domainId, isInitialUnlock: false });
-                newDomainUnlockedThisTick = true;
-                previousDomainId = domainId; 
-            } else {
-                break; 
-            }
-        }
-        if (newDomainUnlockedThisTick) {
-            renderAllDomains(); // Re-render if any domain was unlocked
-        }
-      }
+      // function checkAndUnlockNextDomain() { ... } // Function removed
 
 
       // --- TUTORIAL MANAGER ---
@@ -4057,16 +4006,18 @@
         addStoryEvent(
           "allDomainsActive",
           (game) => {
-            const domainsToCheck = game.prestigeCount === 0 
-                ? DOMAIN_UNLOCK_ORDER.slice(0, 4) 
-                : DOMAIN_UNLOCK_ORDER;
-            const lastDomainIdInScope = domainsToCheck[domainsToCheck.length - 1];
+            // Check if the latest *possible* domain for the current prestige level is unlocked and active
+            const latestPossibleDomainIndex = Math.min(game.prestigeCount, DOMAIN_UNLOCK_ORDER.length - 1);
+            const latestPossibleDomainId = DOMAIN_UNLOCK_ORDER[latestPossibleDomainIndex];
             
-            return game.domains[lastDomainIdInScope]?.unlocked && 
-                   game.domains[lastDomainIdInScope]?.generators.some(g => g.level > 0) &&
-                   domainsToCheck.every(id => game.domains[id]?.unlocked); // Ensure all in scope are unlocked
+            // Ensure all domains up to this point are unlocked and the latest one has activity
+            const allUnlocked = DOMAIN_UNLOCK_ORDER.slice(0, latestPossibleDomainIndex + 1)
+                                  .every(id => game.domains[id]?.unlocked);
+            const latestActive = game.domains[latestPossibleDomainId]?.generators.some(g => g.level > 0);
+
+            return allUnlocked && latestActive;
           },
-          "All currently accessible Domains hum with activity. The Conflux is truly alive!", // Message slightly adjusted
+          "All currently accessible Domains hum with activity. The Conflux expands!", // Adjusted message
           true // oneTime
         );
 
