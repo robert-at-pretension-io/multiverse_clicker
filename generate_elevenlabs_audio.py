@@ -33,8 +33,14 @@ Optional additional keys:
 
 import argparse, json, os, sys, pathlib, time, requests
 from tqdm import tqdm
+from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception
 
 API_HOST = "https://api.elevenlabs.io"
+
+# Custom retry condition for HTTP 429 errors
+def is_http_429_error(retry_state):
+    exception = retry_state.outcome.exception()
+    return isinstance(exception, requests.exceptions.HTTPError) and exception.response.status_code == 429
 
 def parse_args():
     p = argparse.ArgumentParser(description="Batch‑generate speech with ElevenLabs TTS.")
@@ -46,6 +52,12 @@ def parse_args():
     p.add_argument("--voice-similarity", type=float, default=0.75, help="Default similarity boost (0‑1)")
     return p.parse_args()
 
+@retry(
+    wait=wait_exponential(multiplier=1, min=4, max=60),  # Exponential backoff: 1s, 2s, 4s, ... up to 60s
+    stop=stop_after_attempt(5),  # Stop after 5 attempts
+    retry=is_http_429_error,  # Retry only on HTTP 429 errors
+    reraise=True,  # Reraise the last exception if all retries fail
+)
 def generate(tts_cfg, api_key):
     voice_id = tts_cfg["voice_id"]
     url = f"{API_HOST}/v1/text-to-speech/{voice_id}/stream"
@@ -80,6 +92,11 @@ def main():
     for entry in tqdm(prompts, desc="Generating"):
         fname = entry["filename"]
         out_path = outdir / fname
+
+        if out_path.exists():
+            tqdm.write(f"Skipping {fname}, already exists.")
+            continue
+
         try:
             stream = generate(entry, args.api_key)
             with open(out_path, "wb") as f:
