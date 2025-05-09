@@ -1097,7 +1097,9 @@
         buffs: [],
         entropyTokens: 0,
         realityStrain: 0,
-        maxRealityStrain: 100,
+        // maxRealityStrain: 100, // Replaced by dynamic calculation
+        baseMaxRealityStrain: 50, // Initial max strain for prestige 0
+        prestigeMaxStrainScaling: 25, // How much max strain increases per prestige level
         prestigeCount: 0,
         activeTargeting: null,
         tutorialFlags: {}, // For in-session tutorial step tracking
@@ -1140,16 +1142,21 @@
           return this.resources[id] ?? 0;
         },
         increaseRealityStrain(amount) {
+          const currentMaxStrain = getCurrentMaxRealityStrain();
           this.realityStrain = Math.min(
             this.realityStrain + amount,
-            this.maxRealityStrain
+            currentMaxStrain
           );
           Bus.emit("realityStrain:update", {
             current: this.realityStrain,
-            max: this.maxRealityStrain,
+            max: currentMaxStrain,
           });
         },
       };
+
+      function getCurrentMaxRealityStrain() {
+        return Game.baseMaxRealityStrain + Game.prestigeCount * Game.prestigeMaxStrainScaling;
+      }
 
       // --- 3. FACTORY HELPERS ---
       function defineDomain(cfg) {
@@ -1204,7 +1211,7 @@
           clickMultiplier *
           (1 + Game.entropyTokens * 0.005);
         Game.addResource(domain.clickResource.id, gain);
-        Game.increaseRealityStrain(0.01 * (Game.prestigeCount + 1));
+        Game.increaseRealityStrain(0.01); // Removed * (Game.prestigeCount + 1)
 
         // Tutorial Hook
         if (
@@ -1235,9 +1242,7 @@
               gen.baseCost[resId] * Math.pow(gen.costScaling, gen.level)
             );
           });
-          Game.increaseRealityStrain(
-            0.1 * gen.level * (Game.prestigeCount + 1)
-          );
+          Game.increaseRealityStrain(0.1 * gen.level); // Removed * (Game.prestigeCount + 1)
           Bus.emit("generator:bought", {
             domainId,
             generatorId,
@@ -1313,9 +1318,7 @@
             return;
           }
           ability.nextUse = Game.t + ability.cooldownMs;
-          Game.increaseRealityStrain(
-            (ability.strainFactor || 1) * (Game.prestigeCount + 1)
-          );
+          Game.increaseRealityStrain(ability.strainFactor || 1); // Removed * (Game.prestigeCount + 1)
           Bus.emit("ability:cast", {
             casterDomainId,
             abilityId,
@@ -1535,7 +1538,7 @@
       // Largely unchanged
       function attemptPrestige() {
         Game.storyFlags.playedEntropyTokensAudioThisPrestige = false; // Reset at start of attempt
-        if (Game.realityStrain >= Game.maxRealityStrain) {
+        if (Game.realityStrain >= getCurrentMaxRealityStrain()) {
           const tokensEarned = Math.floor(
             1 +
               Game.prestigeCount * 0.5 +
@@ -1656,7 +1659,7 @@
           resources: { ...Game.resources },
           entropyTokens: Game.entropyTokens,
           realityStrain: Game.realityStrain,
-          maxRealityStrain: Game.maxRealityStrain,
+          // maxRealityStrain: Game.maxRealityStrain, // Removed, calculated dynamically
           prestigeCount: Game.prestigeCount,
           storyFlags: {
             ...Game.storyFlags,
@@ -1723,8 +1726,9 @@
           Game.resources = loadedState.resources || {};
           Game.entropyTokens = loadedState.entropyTokens || 0;
           Game.realityStrain = loadedState.realityStrain || 0;
-          Game.maxRealityStrain = loadedState.maxRealityStrain || 100;
+          // Game.maxRealityStrain = loadedState.maxRealityStrain || 100; // Removed
           Game.prestigeCount = loadedState.prestigeCount || 0;
+          // Game.baseMaxRealityStrain and Game.prestigeMaxStrainScaling are constants, not loaded.
 
           // Story Flags
           if (loadedState.storyFlags) {
@@ -2504,7 +2508,7 @@
           {
             id: "prestigeHint",
             trigger: (game) =>
-              game.realityStrain >= Game.maxRealityStrain * 0.3 &&
+              game.realityStrain >= getCurrentMaxRealityStrain() * 0.3 &&
               game.prestigeCount === 0 &&
               !game.tutorialFlags.sawPrestigeHint, // Show hint earlier
             selector: "#prestige-button",
@@ -3091,27 +3095,28 @@
         });
       }
       function updateGlobalStatsUI() {
+        const currentMaxStrain = getCurrentMaxRealityStrain();
         if (entropyTokensDisplay)
           entropyTokensDisplay.textContent = formatNumber(Game.entropyTokens);
         if (realityStrainDisplay)
           realityStrainDisplay.textContent = `${Game.realityStrain.toFixed(
             2
-          )} / ${Game.maxRealityStrain}`;
+          )} / ${currentMaxStrain}`;
         if (realityStrainBar)
           realityStrainBar.style.width = `${
-            (Game.realityStrain / Game.maxRealityStrain) * 100
+            (Game.realityStrain / currentMaxStrain) * 100
           }%`;
         if (prestigeButton) {
-          prestigeButton.disabled = Game.realityStrain < Game.maxRealityStrain;
+          prestigeButton.disabled = Game.realityStrain < currentMaxStrain;
           prestigeButton.classList.toggle(
             "btn-disabled",
-            Game.realityStrain < Game.maxRealityStrain
+            Game.realityStrain < currentMaxStrain
           );
           prestigeButton.classList.toggle(
             "animate-pulse",
-            Game.realityStrain >= Game.maxRealityStrain
+            Game.realityStrain >= currentMaxStrain
           );
-          if (Game.realityStrain >= Game.maxRealityStrain) {
+          if (Game.realityStrain >= currentMaxStrain) {
             prestigeButton.classList.remove(
               "bg-indigo-600",
               "hover:bg-indigo-700"
@@ -3144,8 +3149,8 @@
               - <strong style="color: #6EE7B7;">+0.5%</strong> Global Click Power<br><br>
               Current Total: <strong style="color: #A78BFA;">${Game.entropyTokens}</strong> Tokens (+${Game.entropyTokens}% Prod, +${(Game.entropyTokens * 0.5).toFixed(1)}% Click)
             `;
-            if (Game.realityStrain < Game.maxRealityStrain) {
-              tooltipHTML = `Reach 100% Reality Strain to enable Conflux Collapse.<br><br>` + tooltipHTML;
+            if (Game.realityStrain < getCurrentMaxRealityStrain()) {
+              tooltipHTML = `Reach ${getCurrentMaxRealityStrain()} Reality Strain (${((Game.realityStrain / getCurrentMaxRealityStrain())*100).toFixed(0)}%) to enable Conflux Collapse.<br><br>` + tooltipHTML;
             }
             prestigeTooltip.innerHTML = tooltipHTML;
           }
@@ -4082,7 +4087,7 @@
         registerLore("soundwaves", 6, () => Game.domains.soundwaves?.generators.find((g) => g.id === "cosmicArtist")?.level >= 25, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.lore_level_6_loop_song); // soundwaves_10_loop_song.mp3
         registerLore("soundwaves", 7, () => getDomainLevel("soundwaves") >= 25 && getDomainLevel("emotions") >= 25, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.lore_level_7_amp_cathedral); // soundwaves_07_amp_cathedral_complete.mp3
         registerLore("soundwaves", 8, () => getDomainLevel("soundwaves") >= 50); // No specific audio for lore 8 in map (silence_harvested was Y, assigned to 5)
-        registerLore("soundwaves", 9, () => Game.realityStrain / Game.maxRealityStrain >= 0.6);
+        registerLore("soundwaves", 9, () => Game.realityStrain / getCurrentMaxRealityStrain() >= 0.6);
         registerLore("soundwaves", 10, () => getDomainLevel("soundwaves") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.lore_level_10);
 
         // 🍲 Cosmic Soup Ladle Lore
@@ -4147,7 +4152,7 @@
         registerLore("fractals", 6, () => Game.domains.fractals?.generators.find((g) => g.id === "fractalPet")?.level >= 25);
         registerLore("fractals", 7, () => getDomainLevel("fractals") >= 25 && getDomainLevel("gardeners") >= 25, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.fractals.lore_level_Y_vault); // fractals_08_negative_dimension_vault.mp3
         registerLore("fractals", 8, () => getDomainLevel("fractals") >= 50, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.fractals.lore_level_Z_shield); // fractals_09_antifractal_shield.mp3
-        registerLore("fractals", 9, () => Game.realityStrain / Game.maxRealityStrain >= 0.7);
+        registerLore("fractals", 9, () => Game.realityStrain / getCurrentMaxRealityStrain() >= 0.7);
         registerLore("fractals", 10, () => getDomainLevel("fractals") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.fractals.lore_level_10);
 
         // ⏰ Time-Traveling Snack Bar Lore
@@ -4189,7 +4194,7 @@
         registerLore("emotions", 6, () => Game.domains.emotions?.generators.find((g) => g.id === "empathyReactor")?.level >= 25);
         registerLore("emotions", 7, () => getDomainLevel("emotions") >= 25 && getDomainLevel("soundwaves") >= 25, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.emotions.lore_level_Z_nostalgia); // emotions_13_nostalgia_vein.mp3
         registerLore("emotions", 8, () => getDomainLevel("emotions") >= 50, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.emotions.lore_level_W_courage); // emotions_14_courage_plumes.mp3
-        registerLore("emotions", 9, () => Game.realityStrain / Game.maxRealityStrain >= 0.9);
+        registerLore("emotions", 9, () => Game.realityStrain / getCurrentMaxRealityStrain() >= 0.9);
         registerLore("emotions", 10, () => getDomainLevel("emotions") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.emotions.lore_level_10);
 
         // Tutorial Related Story Hints
@@ -4208,7 +4213,7 @@
         addStoryEvent(
           "tutorialStrainHint",
           () =>
-            Game.realityStrain > Game.maxRealityStrain * 0.6 &&
+            Game.realityStrain > getCurrentMaxRealityStrain() * 0.6 &&
             Game.prestigeCount === 0 &&
             !localStorage.getItem("tutorialFullyCompleted_v1"),
           "Hint: Reality Strain is getting high! Soon you'll be able to 'Conflux Collapse' for powerful Entropy Tokens.",
