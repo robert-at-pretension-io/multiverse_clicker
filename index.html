@@ -533,6 +533,14 @@
       .btn-audio:hover {
         background-color: #71717a; /* zinc-500 */
       }
+      .btn-gallery {
+        background-color: #10B981; /* emerald-500 */
+        color: white;
+        padding: 0.5rem 0.75rem;
+      }
+      .btn-gallery:hover {
+        background-color: #059669; /* emerald-600 */
+      }
     </style>
   </head>
   <body class="min-h-screen p-2 sm:p-4 md:p-6">
@@ -575,6 +583,12 @@
             class="btn btn-audio text-sm font-arcade mb-2 md:mb-0"
           >
             Mute 🔊
+          </button>
+          <button
+            id="gallery-button"
+            class="btn btn-gallery text-sm font-arcade mb-2 md:mb-0"
+          >
+            Gallery 🖼️
           </button>
         </div>
       </header>
@@ -628,17 +642,7 @@
         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
       ></div>
 
-      <div class="mt-8 mb-8">
-        <h2 class="text-2xl font-arcade text-green-400 mb-6 text-center">
-          Conflux Gallery
-        </h2>
-        <div
-          id="trophies-container"
-          class="grid grid-cols-4 xs:grid-cols-5 sm:grid-cols-7 md:grid-cols-7 lg:grid-cols-7 gap-2 sm:gap-3 justify-center max-w-3xl mx-auto"
-        >
-          <!-- Trophies will be injected here by JavaScript -->
-        </div>
-      </div>
+      <!-- Inline gallery removed, will be in a modal -->
     </div>
 
     <div id="target-overlay" class="target-overlay hidden">
@@ -737,6 +741,25 @@
       </div>
     </div>
 
+    <div id="gallery-modal" class="modal-overlay hidden">
+      <div class="modal-content-wrapper" style="max-width: 56rem;"> <!-- Wider for gallery -->
+        <div class="modal-header">
+          <h2 class="modal-title text-green-400">Conflux Gallery</h2>
+          <button id="close-gallery-modal" class="modal-close-button">
+            &times;
+          </button>
+        </div>
+        <div class="modal-body modal-content-scroll">
+          <div
+            id="gallery-modal-trophies-container"
+            class="grid grid-cols-4 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-7 lg:grid-cols-8 gap-2 sm:gap-3 justify-center"
+          >
+            <!-- Trophies will be injected here -->
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <div id="coach-mark-overlay-container"></div>
 
     <div
@@ -2341,16 +2364,18 @@
 
         trophyEl.appendChild(tooltipText);
 
-        // Add click listener to show the modal for this trophy
+        // Add click listener to show the individual trophy unlock modal (which is more like a detail view now)
         trophyEl.addEventListener('click', () => {
-            showTrophyUnlockModal(trophy);
+            // If the main gallery modal is open, clicking a trophy inside it
+            // should show the detailed "unlock" modal for that trophy.
+            showTrophyUnlockModal(trophy); 
         });
 
         return trophyEl;
       }
 
       function renderAllTrophies() {
-        const container = document.getElementById("trophies-container");
+        const container = document.getElementById("gallery-modal-trophies-container"); // Target new container in modal
         if (!container) return;
         container.innerHTML = ""; // Clear existing trophies
         TROPHIES.forEach((trophy) => {
@@ -3349,6 +3374,27 @@
       const helpModal = document.getElementById("help-modal");
       const helpButton = document.getElementById("help-button");
       const closeHelpModal = document.getElementById("close-help-modal");
+
+      // Gallery Modal Elements & Listeners
+      const galleryModal = document.getElementById("gallery-modal");
+      const galleryButton = document.getElementById("gallery-button");
+      const closeGalleryModalButton = document.getElementById("close-gallery-modal");
+
+      if (galleryButton && galleryModal) {
+        galleryButton.addEventListener("click", () => {
+          renderAllTrophies(); // Ensure gallery is up-to-date when opened
+          galleryModal.classList.remove("hidden");
+        });
+      }
+      if (closeGalleryModalButton && galleryModal) {
+        closeGalleryModalButton.addEventListener("click", () => galleryModal.classList.add("hidden"));
+      }
+      if (galleryModal) {
+        galleryModal.addEventListener("click", (e) => {
+          if (e.target === galleryModal) galleryModal.classList.add("hidden");
+        });
+      }
+
 
       if (closeHowToPlayModal && gotItHowToPlayModal && howToPlayModal) {
         const dismissModal = () => {
