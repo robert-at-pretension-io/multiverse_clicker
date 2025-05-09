@@ -2669,9 +2669,27 @@
 
         function checkState() {
           if (localStorage.getItem("tutorialFullyCompleted_v1")) return;
+
+          // Check if the currently displayed step's trigger is still valid
+          if (activeCoachMarkElements && currentStepIndex < tutorialSteps.length) {
+            const currentDisplayedStep = tutorialSteps[currentStepIndex];
+            if (!currentDisplayedStep.trigger(Game)) {
+              // Trigger condition became false (e.g., user prestiged), hide the current coach mark
+              clearCurrentStepDisplay();
+              // Don't advance, just hide. The next checkState might trigger it again if appropriate.
+            }
+          }
+
           if (currentStepIndex >= tutorialSteps.length) {
-            localStorage.setItem("tutorialFullyCompleted_v1", "true");
-            Bus.emit("feedback:message", {
+            // Check again after potential clearCurrentStepDisplay call
+            if (!activeCoachMarkElements) { // Only finalize if nothing is displayed
+                 localStorage.setItem("tutorialFullyCompleted_v1", "true");
+                 Bus.emit("feedback:message", {
+                    message: "Guided tour complete! The Conflux is yours to shape.",
+                    type: "success",
+                    fontClass: "font-arcade",
+                 });
+            }
               message: "Guided tour complete! The Conflux is yours to shape.",
               type: "success",
               fontClass: "font-arcade",
@@ -2680,15 +2698,9 @@
             return;
           }
           const nextStep = tutorialSteps[currentStepIndex];
-          if (nextStep && nextStep.trigger(Game)) {
+          // Only display if no coach mark is currently active and the trigger is met
+          if (!activeCoachMarkElements && nextStep && nextStep.trigger(Game)) {
             displayStep(nextStep);
-          } else if (
-            activeCoachMarkElements &&
-            nextStep &&
-            !nextStep.trigger(Game)
-          ) {
-            // If the trigger for the current coach mark becomes false (e.g. player did something else)
-            // clearCurrentStepDisplay(); // Optionally hide if condition no longer met
           }
         }
 
