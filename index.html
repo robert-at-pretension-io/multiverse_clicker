@@ -14,6 +14,31 @@
       rel="stylesheet"
     />
     <style>
+      @keyframes pulseGlowGreen {
+        0%, 100% { box-shadow: 0 0 20px rgba(52, 211, 153, 0.7), 0 0 5px rgba(52, 211, 153, 0.5) inset; }
+        50% { box-shadow: 0 0 30px rgba(52, 211, 153, 1), 0 0 10px rgba(52, 211, 153, 0.7) inset; }
+      }
+      @keyframes pulseGlowBlue {
+        0%, 100% { box-shadow: 0 0 20px rgba(96, 165, 250, 0.7), 0 0 5px rgba(96, 165, 250, 0.5) inset; border-color: #60A5FA; }
+        50% { box-shadow: 0 0 30px rgba(96, 165, 250, 1), 0 0 10px rgba(96, 165, 250, 0.7) inset; border-color: #93C5FD; }
+      }
+      @keyframes shimmerPurple {
+        0%, 100% { box-shadow: 0 0 20px rgba(167, 139, 250, 0.6), 0 0 8px rgba(200, 180, 255, 0.4) inset; opacity: 0.9; }
+        50% { box-shadow: 0 0 28px rgba(167, 139, 250, 0.8), 0 0 12px rgba(200, 180, 255, 0.6) inset; opacity: 1; }
+      }
+      @keyframes flickerNeonOrange {
+        0%, 100% { box-shadow: 0 0 15px #FB923C, 0 0 25px #FDBA74, 0 0 5px #FED7AA inset; }
+        50% { box-shadow: 0 0 20px #FB923C, 0 0 30px #FDBA74, 0 0 8px #FED7AA inset, 0 0 2px white; }
+      }
+      @keyframes subtleWarp {
+        0%, 100% { transform: skewX(-0.5deg) skewY(0.25deg); }
+        50% { transform: skewX(0.5deg) skewY(-0.25deg); }
+      }
+      @keyframes gentleBob {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-2px); }
+      }
+
       body {
         font-family: "Inter", sans-serif;
         background-color: #111827; /* bg-gray-900 */
@@ -38,58 +63,96 @@
 
       /* Gardener: Organic, Quantum Green */
       .domain-card-gardeners {
-        border-color: #34D399; /* domain.color */
+        background: linear-gradient(135deg, #224030, #103020);
+        border: 2px solid #34D399;
+        border-radius: 12px; /* More rounded */
+        animation: pulseGlowGreen 3s infinite ease-in-out;
       }
       .domain-card-gardeners:hover {
-        box-shadow: 0 0 20px rgba(52, 211, 153, 0.7); /* Brighter green glow */
+        transform: scale(1.02);
+        box-shadow: 0 0 35px rgba(52, 211, 153, 0.9), 0 0 15px rgba(100, 255, 200, 0.6) inset;
       }
 
       /* Soundwaves: Resonant, Electric Blue */
       .domain-card-soundwaves {
-        border-color: #60A5FA; /* domain.color */
+        background: linear-gradient(to right, #1E3A8A, #3B82F6); /* Dark blue to lighter blue */
+        border: 2px dashed #60A5FA; /* Dashed border like sound waves */
+        animation: pulseGlowBlue 2.5s infinite alternate;
       }
       .domain-card-soundwaves:hover {
-        box-shadow: 0 0 20px rgba(96, 165, 250, 0.7); /* Bright blue glow */
+        transform: translateY(-3px);
+        box-shadow: 0 5px 30px rgba(96, 165, 250, 0.8), 0 0 10px #FFFFFF inset;
+        border-style: solid;
       }
 
       /* Soup: Warm, Cosmic Amber/Yellow */
       .domain-card-soup {
-        border-color: #FBBF24; /* domain.color */
+        background: radial-gradient(circle, #FDE68A, #FBBF24); /* Light yellow center to amber */
+        border: 3px double #F59E0B; /* Double border like a bowl rim */
+        border-radius: 20px 20px 8px 8px; /* Bowl-like shape */
+        animation: gentleBob 3s infinite ease-in-out;
       }
       .domain-card-soup:hover {
-        box-shadow: 0 0 20px rgba(251, 191, 36, 0.7); /* Golden yellow glow */
+        box-shadow: 0 0 25px rgba(251, 191, 36, 0.9), 0 0 10px rgba(253, 230, 138, 0.5) inset;
+        transform: scale(1.01) rotate(1deg);
       }
 
       /* Afterlives: Ethereal, Spectral Purple */
       .domain-card-afterlives {
-        border-color: #A78BFA; /* domain.color */
+        background-color: #2E1040; /* Deep spectral purple */
+        border: 1px solid #A78BFA;
+        box-shadow: 0 0 15px rgba(167, 139, 250, 0.4);
+        animation: shimmerPurple 4s infinite ease-in-out;
       }
       .domain-card-afterlives:hover {
-        box-shadow: 0 0 20px rgba(167, 139, 250, 0.6); /* Lavender glow */
+        background-color: #3B096C;
+        border-color: #C4B5FD;
+        box-shadow: 0 0 30px rgba(167, 139, 250, 0.8), 0 0 10px rgba(220, 200, 255, 0.5) inset;
+        transform: perspective(500px) rotateY(2deg);
       }
 
       /* Fractals: Geometric, Vibrant Pink */
       .domain-card-fractals {
-        border-color: #F472B6; /* domain.color */
+        background: repeating-linear-gradient(
+          45deg,
+          #4A044E, /* Dark magenta */
+          #4A044E 10px,
+          #701A75 10px, /* Lighter magenta */
+          #701A75 20px
+        );
+        border: 2px solid #F472B6; /* Vibrant Pink */
+        box-shadow: 0 0 10px #F472B6, 0 0 5px #F472B6 inset;
+        animation: subtleWarp 5s infinite linear;
       }
       .domain-card-fractals:hover {
-        box-shadow: 0 0 20px rgba(244, 114, 182, 0.7); /* Bright pink glow */
+        transform: scale(1.03);
+        box-shadow: 0 0 30px #F472B6, 0 0 15px #F9A8D4 inset, 0 0 5px white;
+        background-size: 40px 40px; /* Make pattern 'zoom' slightly */
       }
 
       /* Snackbar: Temporal, Energetic Orange */
       .domain-card-snackbar {
-        border-color: #FB923C; /* domain.color */
+        background: linear-gradient(45deg, #7C2D12, #EA580C); /* Burnt orange to bright orange */
+        border: 3px outset #FB923C;
+        border-radius: 6px;
+        animation: flickerNeonOrange 1.5s infinite steps(2, end);
       }
       .domain-card-snackbar:hover {
-        box-shadow: 0 0 20px rgba(251, 146, 60, 0.7); /* Fiery orange glow */
+        transform: skewX(-2deg);
+        box-shadow: 0 0 35px #FB923C, 0 0 45px #FDBA74, 0 0 10px #FED7AA inset, 0 0 4px white;
       }
 
       /* Emotions: Psychic, Moody Indigo */
       .domain-card-emotions {
-        border-color: #818CF8; /* domain.color */
+        background: radial-gradient(ellipse at bottom, #312E81, #4F46E5); /* Deep indigo to lighter indigo */
+        border: 2px solid #818CF8;
+        border-radius: 50% 50% 10px 10px / 20% 20% 10px 10px; /* Organic, flowing shape */
+        animation: gentleBob 3.5s infinite ease-in-out, pulseGlowBlue 4s infinite ease-in-out 0.5s; /* Combine animations */
       }
       .domain-card-emotions:hover {
-        box-shadow: 0 0 20px rgba(129, 140, 248, 0.6); /* Indigo glow */
+        transform: scale(1.02) translateY(-2px);
+        box-shadow: 0 0 30px rgba(129, 140, 248, 0.8), 0 0 12px rgba(165, 180, 252, 0.6) inset;
+        background: radial-gradient(ellipse at bottom, #4338CA, #6366F1);
       }
 
       .btn {
