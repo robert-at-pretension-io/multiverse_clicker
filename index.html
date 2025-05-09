@@ -753,6 +753,150 @@
         };
       })();
 
+      // --- AUDIO TRIGGER MAP ---
+      const DOMAIN_SPECIFIC_AUDIO_TRIGGERS = {
+        "gardeners": {
+          "intro": "out_audio/gardeners_01_intro.mp3", // Handled by DOMAIN_INTRO_AUDIO
+          "first_resource_probabilityPetal": "out_audio/gardeners_02_first_petal.mp3",
+          "first_generator_timelineBloomer": "out_audio/gardeners_03_bloomer_purchase.mp3", // Also tied to lore 3
+          "generator_milestone_level_10_total": "out_audio/gardeners_04_ten_bloomers.mp3", // Also tied to lore 4
+          "ability_cast_collapseCertainty": "out_audio/gardeners_05_first_ability.mp3",
+          "resource_milestone_100_probabilityPetal": "out_audio/gardeners_06_hundred_petals.mp3",
+          "lore_level_5": "out_audio/gardeners_07_lore_level5.mp3",
+          "lore_level_8": "out_audio/gardeners_08_many_worlds_orchard.mp3", // Example: tie to lore 8
+          "first_trophy": "out_audio/gardeners_09_first_trophy.mp3",
+          "gained_entropy_tokens": "out_audio/gardeners_10_entropy_tokens.mp3",
+          "half_strain": "out_audio/gardeners_11_half_strain.mp3",
+          "collapse_ready": "out_audio/gardeners_12_conflux_collapse_ready.mp3",
+          "post_prestige": "out_audio/gardeners_13_post_prestige.mp3",
+          "generator_milestone_level_50_total": "out_audio/gardeners_14_level_fifty.mp3",
+          "lore_level_10": "out_audio/gardeners_15_final_ascension.mp3"
+        },
+        "soundwaves": {
+          "intro": "out_audio/soundwaves_01_intro.mp3", // Handled by DOMAIN_INTRO_AUDIO
+          "first_resource_echoRoyalty": "out_audio/soundwaves_02_first_echo.mp3",
+          "first_generator_cosmicArtist": "out_audio/soundwaves_03_artist_hired.mp3",
+          "lore_level_X_bass_drop": "out_audio/soundwaves_04_bass_drop.mp3", // Assign to a lore level or specific event
+          "ability_cast_dissonanceBurst": "out_audio/soundwaves_05_dissonance_burst_cast.mp3",
+          "resource_milestone_1000_echoRoyalty": "out_audio/soundwaves_06_echo_milestone_1k.mp3",
+          "lore_level_7_amp_cathedral": "out_audio/soundwaves_07_amp_cathedral_complete.mp3", // Example: lore 7
+          "lore_level_Y_silence_harvested": "out_audio/soundwaves_08_silence_harvested.mp3", // Assign
+          "first_trophy": "out_audio/soundwaves_09_trophy_unlocked.mp3",
+          "lore_level_6_loop_song": "out_audio/soundwaves_10_loop_song.mp3", // Example: lore 6
+          "half_strain": "out_audio/soundwaves_11_half_strain_warning.mp3",
+          "collapse_ready": "out_audio/soundwaves_12_collapse_ready.mp3",
+          "post_prestige": "out_audio/soundwaves_13_post_prestige_remix.mp3",
+          "generator_milestone_level_50_total": "out_audio/soundwaves_14_level_fifty_artists.mp3",
+          "lore_level_10": "out_audio/soundwaves_15_grand_unified_metronome.mp3"
+        },
+        "soup": {
+          "intro": "out_audio/soup_01_intro.mp3", // Handled by DOMAIN_INTRO_AUDIO
+          "first_resource_flavorQuark": "out_audio/soup_02_first_quark.mp3",
+          "first_generator_primordialBroth": "out_audio/soup_03_broth_started.mp3",
+          "ability_cast_bigSlurp": "out_audio/soup_04_big_slurp_cast.mp3",
+          "resource_milestone_1000_flavorQuark": "out_audio/soup_05_quark_milestone_1k.mp3",
+          "lore_level_X_alphabet": "out_audio/soup_06_alphabet_particles.mp3", // Assign
+          "lore_level_Y_kimchi": "out_audio/soup_07_kimchi_fermented.mp3", // Assign
+          "lore_level_Z_foam": "out_audio/soup_08_flavor_foam.mp3", // Assign
+          "first_trophy": "out_audio/soup_09_trophy_unlocked.mp3",
+          "half_strain": "out_audio/soup_10_half_strain_warning.mp3",
+          "collapse_ready": "out_audio/soup_11_collapse_ready.mp3",
+          "post_prestige": "out_audio/soup_12_post_prestige_flavor.mp3",
+          "generator_milestone_level_50_total": "out_audio/soup_13_level_fifty_broth.mp3",
+          "ability_milestone_slurp_chain": "out_audio/soup_14_slurp_chain.mp3", // e.g. 3 slurps this prestige
+          "lore_level_10": "out_audio/soup_15_omniversal_recipe.mp3"
+        },
+        "afterlives": {
+          "intro": "out_audio/afterlives_01_intro.mp3", // Handled by DOMAIN_INTRO_AUDIO
+          "first_resource_existentialStamp": "out_audio/afterlives_02_first_stamp.mp3",
+          "first_generator_soulClerk": "out_audio/afterlives_03_clerk_hired.mp3",
+          "ability_cast_auditRival": "out_audio/afterlives_04_audit_cast.mp3",
+          "resource_milestone_1000_existentialStamp": "out_audio/afterlives_05_stamp_milestone_1k.mp3",
+          "lore_level_X_in_tray": "out_audio/afterlives_06_infinite_in_tray.mp3", // Assign
+          "lore_level_Y_union": "out_audio/afterlives_07_union_formed.mp3", // Assign
+          "first_trophy": "out_audio/afterlives_08_trophy_unlocked.mp3",
+          "half_strain": "out_audio/afterlives_09_half_strain_warning.mp3",
+          "collapse_ready": "out_audio/afterlives_10_collapse_ready.mp3",
+          "post_prestige": "out_audio/afterlives_11_post_prestige_clearance.mp3",
+          "generator_milestone_level_50_total": "out_audio/afterlives_12_level_fifty_clerks.mp3",
+          "lore_level_Z_debt_gremlins": "out_audio/afterlives_13_debt_gremlins.mp3", // Assign
+          "lore_level_W_compliance": "out_audio/afterlives_14_metaphysical_compliance.mp3", // Assign
+          "lore_level_10": "out_audio/afterlives_15_backlog_resolved.mp3"
+        },
+        "fractals": {
+          "intro": "out_audio/fractals_01_intro.mp3", // Handled by DOMAIN_INTRO_AUDIO
+          "first_resource_symmetryShard": "out_audio/fractals_02_first_shard.mp3",
+          "first_generator_fractalPet": "out_audio/fractals_03_pet_forged.mp3",
+          "ability_cast_recursiveSwarm": "out_audio/fractals_04_swarm_cast.mp3",
+          "resource_milestone_1000_symmetryShard": "out_audio/fractals_05_shard_milestone_1k.mp3",
+          "lore_level_X_inversion": "out_audio/fractals_06_factory_inversion.mp3", // Assign
+          "first_trophy": "out_audio/fractals_07_trophy_unlocked.mp3",
+          "lore_level_Y_vault": "out_audio/fractals_08_negative_dimension_vault.mp3", // Assign
+          "lore_level_Z_shield": "out_audio/fractals_09_antifractal_shield.mp3", // Assign
+          "half_strain": "out_audio/fractals_10_half_strain_warning.mp3",
+          "collapse_ready": "out_audio/fractals_11_collapse_ready.mp3",
+          "post_prestige": "out_audio/fractals_12_post_prestige_reset.mp3",
+          "generator_milestone_level_50_total": "out_audio/fractals_13_level_fifty_pets.mp3",
+          "lore_level_W_mirror_cache": "out_audio/fractals_14_mirror_cache_found.mp3", // Assign
+          "lore_level_10": "out_audio/fractals_15_micro_civilization.mp3"
+        },
+        "snackbar": {
+          "intro": "out_audio/snackbar_01_intro.mp3", // Handled by DOMAIN_INTRO_AUDIO
+          "first_resource_chronoTip": "out_audio/snackbar_02_first_tip.mp3",
+          "first_generator_eraFoodTruck": "out_audio/snackbar_03_truck_bought.mp3",
+          "ability_cast_paradoxSurge": "out_audio/snackbar_04_paradox_surge_cast.mp3",
+          "resource_milestone_1000_chronoTip": "out_audio/snackbar_05_tip_milestone_1k.mp3",
+          "lore_level_X_fryer": "out_audio/snackbar_06_temporal_fryer.mp3", // Assign
+          "lore_level_Y_inspection": "out_audio/snackbar_07_health_inspection_passed.mp3", // Assign
+          "first_trophy": "out_audio/snackbar_08_trophy_unlocked.mp3",
+          "half_strain": "out_audio/snackbar_09_half_strain_warning.mp3",
+          "collapse_ready": "out_audio/snackbar_10_collapse_ready.mp3",
+          "post_prestige": "out_audio/snackbar_11_post_prestige_grand_reopening.mp3",
+          "generator_milestone_level_50_total": "out_audio/snackbar_12_level_fifty_trucks.mp3",
+          "lore_level_Z_ramen": "out_audio/snackbar_13_epoch_ramen.mp3", // Assign
+          "lore_level_W_insurance": "out_audio/snackbar_14_insurance_claim.mp3", // Assign
+          "lore_level_10": "out_audio/snackbar_15_omnipresent_fleet.mp3"
+        },
+        "emotions": {
+          "intro": "out_audio/emotions_01_intro.mp3", // Handled by DOMAIN_INTRO_AUDIO
+          "first_resource_vibeOre": "out_audio/emotions_02_first_vibe.mp3",
+          "first_generator_empathyReactor": "out_audio/emotions_03_reactor_built.mp3",
+          "ability_cast_serenityField": "out_audio/emotions_04_serenity_field_cast.mp3",
+          "resource_milestone_1000_vibeOre": "out_audio/emotions_05_vibe_milestone_1k.mp3",
+          "lore_level_X_regret_gas": "out_audio/emotions_06_regret_gas_detected.mp3", // Assign
+          "lore_level_Y_plateau": "out_audio/emotions_07_subconscious_plateau.mp3", // Assign
+          "first_trophy": "out_audio/emotions_08_trophy_unlocked.mp3",
+          "half_strain": "out_audio/emotions_09_half_strain_warning.mp3",
+          "collapse_ready": "out_audio/emotions_10_collapse_ready.mp3",
+          "post_prestige": "out_audio/emotions_11_post_prestige_new_mood.mp3",
+          "generator_milestone_level_50_total": "out_audio/emotions_12_level_fifty_reactors.mp3",
+          "lore_level_Z_nostalgia": "out_audio/emotions_13_nostalgia_vein.mp3", // Assign
+          "lore_level_W_courage": "out_audio/emotions_14_courage_plumes.mp3", // Assign
+          "lore_level_10": "out_audio/emotions_15_psycho_crystal_bloom.mp3"
+        }
+      };
+
+      function playDominantAudio(eventType, specificData = null) {
+        let audioFileToPlay = null;
+        for (const domainId of [...DOMAIN_UNLOCK_ORDER].reverse()) {
+          if (Game.domains[domainId]?.unlocked) {
+            const domainAudioMap = DOMAIN_SPECIFIC_AUDIO_TRIGGERS[domainId];
+            if (domainAudioMap && domainAudioMap[eventType]) {
+              audioFileToPlay = domainAudioMap[eventType];
+              break;
+            }
+          }
+        }
+        if (audioFileToPlay) {
+          // Check if this specific audio event has a flag and if it has been played
+          const audioFlag = `played_audio_${eventType}_${specificData || 'global'}`;
+          if (Game.storyFlags[audioFlag]) return; // Already played this specific one
+
+          AudioManager.playSound(audioFileToPlay);
+          Game.storyFlags[audioFlag] = true; // Mark as played
+        }
+      }
+
       // --- 1. EVENT BUS ---
       const Bus = (() => {
         const listeners = new Map();
@@ -801,6 +945,13 @@
           soup_slurpsThisPrestige: 0,
           snackbar_surgesThisPrestige: 0,
           storyEventStates: {}, // To store { eventId: { fired: boolean } }
+          // Flags for one-time audio events, e.g., played_gardeners_first_resource_audio: true
+          // These will be dynamically checked/set by story events or direct calls.
+          // Global audio cycle flags
+          playedHalfStrainAudioThisCycle: false,
+          playedCollapseReadyAudioThisCycle: false,
+          playedEntropyTokensAudioThisPrestige: false,
+          playedPostPrestigeAudioThisCycle: false,
         },
         unlockedTrophies: new Set(), // For tracking unlocked gallery images
 
@@ -999,6 +1150,14 @@
             nextUse: ability.nextUse,
           });
 
+          // Play audio for first cast of specific abilities
+          const abilityAudioKey = `ability_cast_${abilityId}`;
+          const audioFlagKey = `played_audio_cast_${casterDomainId}_${abilityId}`;
+          if (DOMAIN_SPECIFIC_AUDIO_TRIGGERS[casterDomainId]?.[abilityAudioKey] && !Game.storyFlags[audioFlagKey]) {
+            AudioManager.playSound(DOMAIN_SPECIFIC_AUDIO_TRIGGERS[casterDomainId][abilityAudioKey]);
+            Game.storyFlags[audioFlagKey] = true;
+          }
+
           // --- Story Flag Updates on Ability Cast ---
           if (targetDomainId && targetDomainId !== casterDomainId) {
             Game.storyFlags.rivalsTargetedByAbilities.add(targetDomainId);
@@ -1095,6 +1254,26 @@
         Bus.emit("tick", dtMs);
         checkAndUnlockNextDomain(); // Check for new domain unlocks
         checkAndUnlockTrophies(); // Check for new trophy unlocks
+        
+        // Global Audio Triggers in Tick
+        if (Game.realityStrain >= Game.maxRealityStrain * 0.5) {
+          if (!Game.storyFlags.playedHalfStrainAudioThisCycle) {
+            playDominantAudio("half_strain"); // playDominantAudio handles its own one-time flag for this specific event type
+            Game.storyFlags.playedHalfStrainAudioThisCycle = true;
+          }
+        } else {
+          Game.storyFlags.playedHalfStrainAudioThisCycle = false; // Reset when condition no longer met
+        }
+
+        if (Game.realityStrain >= Game.maxRealityStrain) {
+          if (!Game.storyFlags.playedCollapseReadyAudioThisCycle) {
+            playDominantAudio("collapse_ready");
+            Game.storyFlags.playedCollapseReadyAudioThisCycle = true;
+          }
+        } else {
+          Game.storyFlags.playedCollapseReadyAudioThisCycle = false; // Reset if strain drops somehow or on prestige
+        }
+
         TutorialManager.checkState(); // Check tutorial state every tick
       }
 
@@ -1182,6 +1361,7 @@
       // --- PRESTIGE ---
       // Largely unchanged
       function attemptPrestige() {
+        Game.storyFlags.playedEntropyTokensAudioThisPrestige = false; // Reset at start of attempt
         if (Game.realityStrain >= Game.maxRealityStrain) {
           const tokensEarned = Math.floor(
             1 +
@@ -1214,6 +1394,25 @@
           // Reset cycle-specific story flags
           Game.storyFlags.soup_slurpsThisPrestige = 0;
           Game.storyFlags.snackbar_surgesThisPrestige = 0;
+          
+          // Reset global audio cycle flags
+          Game.storyFlags.playedHalfStrainAudioThisCycle = false;
+          Game.storyFlags.playedCollapseReadyAudioThisCycle = false;
+          // Game.storyFlags.playedEntropyTokensAudioThisPrestige is handled per prestige
+          // Game.storyFlags.playedPostPrestigeAudioThisCycle is handled per prestige
+
+          // Play post-prestige audio
+          if (!Game.storyFlags.playedPostPrestigeAudioThisCycle) { // Should be this prestige, not cycle
+             playDominantAudio("post_prestige");
+             Game.storyFlags.playedPostPrestigeAudioThisCycle = true; // Set for this cycle
+          }
+          // Play entropy tokens audio (if new tokens were earned)
+          if (tokensEarned > 0 && !Game.storyFlags.playedEntropyTokensAudioThisPrestige) {
+            playDominantAudio("gained_entropy_tokens");
+            Game.storyFlags.playedEntropyTokensAudioThisPrestige = true;
+          }
+
+
           // Persistent story flags (like castOnce, rivalsTargetedByAbilities, auditedRivals) are NOT reset here.
 
           storyEvents.forEach((ev) => {
@@ -1245,6 +1444,10 @@
           TutorialManager.resetForNewSession(); // Reset tutorial for next prestige if not fully completed globally
           renderAllTrophies(); // Update gallery after prestige (reflects persistent unlocks)
           TutorialManager.checkState(); // Check if tutorial needs to restart
+          
+          // Reset for next prestige cycle
+          Game.storyFlags.playedPostPrestigeAudioThisCycle = false; 
+          // playedEntropyTokensAudioThisPrestige should persist for the whole prestige, then reset on next
         } else {
           Bus.emit("feedback:message", {
             message: "Reality is not strained enough to collapse!",
@@ -2868,7 +3071,16 @@
       Bus.on("trophy:unlocked", (trophy) => {
         // The gallery is re-rendered by checkAndUnlockTrophies itself
         showTrophyUnlockModal(trophy);
-        // Removed the Bus.emit("feedback:message", ...) as the modal is more prominent
+        
+        // Play domain-specific first trophy audio
+        const domainId = trophy.id.split("0")[0]; // e.g., "gardeners" from "gardeners01_trophy"
+        const audioKey = "first_trophy";
+        const audioFlag = `played_audio_first_trophy_${domainId}`;
+
+        if (DOMAIN_SPECIFIC_AUDIO_TRIGGERS[domainId]?.[audioKey] && !Game.storyFlags[audioFlag]) {
+          AudioManager.playSound(DOMAIN_SPECIFIC_AUDIO_TRIGGERS[domainId][audioKey]);
+          Game.storyFlags[audioFlag] = true;
+        }
       });
       Bus.on("domain:unlocked", ({ domainId, isInitialUnlock }) => {
         const domain = Game.domains[domainId];
@@ -3601,62 +3813,52 @@
           0;
 
         // 🌱 Quantum Gardeners Lore
-        registerLore( // Note: "genesis" event already plays gardeners_01_intro.mp3
-          "gardeners",
-          1,
-          () => Game.getResource("probabilityPetal") > 0 
-        );
-        registerLore( // Note: "firstPetalHundred" plays gardeners_06_hundred_petals.mp3
-          "gardeners",
-          2,
-          () => Game.getResource("probabilityPetal") >= 100
-        );
-        registerLore(
-          "gardeners",
-          3,
-          () =>
-            Game.domains.gardeners?.generators.find(
-              (g) => g.id === "timelineBloomer"
-            )?.level >= 1,
-          true, // oneTime
-          "out_audio/gardeners_03_bloomer_purchase.mp3"
-        );
-        registerLore(
-          "gardeners", 
-          4, 
-          () => getDomainLevel("gardeners") >= 10,
-          true,
-          "out_audio/gardeners_04_ten_bloomers.mp3" // Assuming 10 total levels ~ 10 bloomers for this example
-        );
-        registerLore(
-          "gardeners",
-          5,
-          () => Game.storyFlags.gardeners_castCollapseCertaintyOnce === true
-        );
-        registerLore(
-          "gardeners",
-          6,
-          () =>
-            Game.domains.gardeners?.generators.find(
-              (g) => g.id === "timelineBloomer"
-            )?.level >= 25
-        );
-        registerLore(
-          "gardeners",
-          7,
-          () =>
-            getDomainLevel("gardeners") >= 25 &&
-            getDomainLevel("soundwaves") >= 25
-        );
-        registerLore("gardeners", 8, () => getDomainLevel("gardeners") >= 50);
-        registerLore(
-          "gardeners",
-          9,
-          () => Game.storyFlags.rivalsTargetedByAbilities.size >= 5
-        );
-        registerLore("gardeners", 10, () => getDomainLevel("gardeners") >= 100);
+        addStoryEvent("gardeners_first_petal_audio", () => Game.getResource("probabilityPetal") > 0 && Game.domains.gardeners.unlocked && !Game.storyFlags.played_audio_gardeners_first_resource_probabilityPetal,
+          "First Probability Petal!", true, () => Game.storyFlags.played_audio_gardeners_first_resource_probabilityPetal = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.gardeners.first_resource_probabilityPetal);
+        
+        registerLore("gardeners", 1, () => Game.getResource("probabilityPetal") > 0); // Audio handled by above event or intro
+
+        // gardeners_06_hundred_petals.mp3 is already part of "firstPetalHundred" story event.
+        // We can ensure it uses the map or leave it as is. For consistency, let's assume it's covered.
+        // If "firstPetalHundred" message is different from the audio's intent, we might add another event.
+        // For now, assuming "firstPetalHundred" covers "resource_milestone_100_probabilityPetal".
+
+        registerLore("gardeners", 2, () => Game.getResource("probabilityPetal") >= 100);
+
+        // gardeners_03_bloomer_purchase.mp3 is for first generator. Lore 3 might be a good place.
+        // The existing lore 3 already has this audio.
+        registerLore("gardeners", 3, () => Game.domains.gardeners?.generators.find((g) => g.id === "timelineBloomer")?.level >= 1, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.gardeners.first_generator_timelineBloomer);
+
+        // gardeners_04_ten_bloomers.mp3 for gen level 10. Lore 4 already has this.
+        registerLore("gardeners", 4, () => getDomainLevel("gardeners") >= 10, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.gardeners.generator_milestone_level_10_total);
+        
+        // gardeners_05_first_ability.mp3 is handled by castAbility logic directly.
+
+        registerLore("gardeners", 5, () => Game.storyFlags.gardeners_castCollapseCertaintyOnce === true, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.gardeners.lore_level_5);
+        
+        registerLore("gardeners", 6, () => Game.domains.gardeners?.generators.find((g) => g.id === "timelineBloomer")?.level >= 25);
+        
+        registerLore("gardeners", 7, () => getDomainLevel("gardeners") >= 25 && getDomainLevel("soundwaves") >= 25);
+        
+        registerLore("gardeners", 8, () => getDomainLevel("gardeners") >= 50, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.gardeners.lore_level_8);
+        
+        addStoryEvent("gardeners_level_50_generators_audio", () => getDomainLevel("gardeners") >= 50 && !Game.storyFlags.played_audio_gardeners_gen_level_50,
+          "Gardeners generators reach level 50!", true, () => Game.storyFlags.played_audio_gardeners_gen_level_50 = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.gardeners.generator_milestone_level_50_total);
+
+        registerLore("gardeners", 9, () => Game.storyFlags.rivalsTargetedByAbilities.size >= 5);
+        
+        registerLore("gardeners", 10, () => getDomainLevel("gardeners") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.gardeners.lore_level_10);
 
         // 🎵 Sentient Soundwaves Lore
+        addStoryEvent("soundwaves_first_echo_audio", () => Game.getResource("echoRoyalty") > 0 && Game.domains.soundwaves.unlocked && !Game.storyFlags.played_audio_soundwaves_first_resource_echoRoyalty,
+          "First Echo!", true, () => Game.storyFlags.played_audio_soundwaves_first_resource_echoRoyalty = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.first_resource_echoRoyalty);
+        addStoryEvent("soundwaves_first_generator_audio", () => Game.domains.soundwaves?.generators.find(g=>g.id === 'cosmicArtist')?.level >= 1 && !Game.storyFlags.played_audio_soundwaves_first_generator_cosmicArtist,
+          "Cosmic Artist hired!", true, () => Game.storyFlags.played_audio_soundwaves_first_generator_cosmicArtist = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.first_generator_cosmicArtist);
+        addStoryEvent("soundwaves_resource_milestone_1k_audio", () => Game.getResource("echoRoyalty") >= 1000 && !Game.storyFlags.played_audio_soundwaves_res_1k_echoRoyalty,
+          "1000 Echoes!", true, () => Game.storyFlags.played_audio_soundwaves_res_1k_echoRoyalty = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.resource_milestone_1000_echoRoyalty);
+        addStoryEvent("soundwaves_level_50_generators_audio", () => getDomainLevel("soundwaves") >= 50 && !Game.storyFlags.played_audio_soundwaves_gen_level_50,
+          "Soundwaves generators reach level 50!", true, () => Game.storyFlags.played_audio_soundwaves_gen_level_50 = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.generator_milestone_level_50_total);
+
         registerLore(
           "soundwaves",
           1,
