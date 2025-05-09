@@ -2668,6 +2668,21 @@
         }
 
         function checkState() {
+          // If the player has prestiged, don't show any more tutorial steps.
+          if (Game.prestigeCount > 0) {
+            // Optionally, ensure any currently displayed mark is cleared if prestige happens mid-tutorial
+            if (activeCoachMarkElements) {
+              clearCurrentStepDisplay();
+            }
+            // Mark tutorial as 'completed' in this context to prevent further checks
+            if (!localStorage.getItem("tutorialFullyCompleted_v1")) {
+                 localStorage.setItem("tutorialFullyCompleted_v1", "true");
+                 // Optional: message indicating tutorial is done after prestige
+                 // Bus.emit("feedback:message", { message: "Tutorial complete.", type: "info" });
+            }
+            return; 
+          }
+          
           if (localStorage.getItem("tutorialFullyCompleted_v1")) return;
 
           // Check if the currently displayed step's trigger is still valid
