@@ -4130,6 +4130,45 @@
         );
       }
 
+      // --- DEBUG MODE ---
+      function activateDebugMode() {
+        Bus.emit("feedback:message", { message: "🚀 DEBUG MODE ACTIVATED 🚀", type: "warning", fontClass: "font-arcade text-xl" });
+
+        // Unlock all domains and set generator levels
+        Object.values(Game.domains).forEach(domain => {
+          domain.unlocked = true;
+          domain.generators.forEach(gen => {
+            gen.level = 20; // Set to a reasonable level for testing
+            // Recalculate cost for this level
+            Object.keys(gen.baseCost).forEach((resId) => {
+              gen.currentCost[resId] = Math.floor(
+                gen.baseCost[resId] * Math.pow(gen.costScaling, gen.level)
+              );
+            });
+          });
+          // Grant a large amount of primary resource
+          Game.addResource(domain.clickResource.id, 1e9); // 1 billion
+          // Unlock all lore
+          domain.unlockedLoreLevel = domain.allLoreTexts.length;
+        });
+
+        // Unlock all trophies
+        TROPHIES.forEach(trophy => {
+          Game.unlockedTrophies.add(trophy.id);
+        });
+
+        // Grant Entropy Tokens
+        Game.entropyTokens = 100;
+        Game.prestigeCount = 5; // Simulate a few prestiges for scaling tests
+
+        // Re-render everything
+        renderAllDomains();
+        renderAllTrophies();
+        updateGlobalStatsUI();
+        checkStoryEvents(); // Re-check story events as state has changed drastically
+        Bus.emit("feedback:message", { message: "All domains, generators (Lvl 20), resources, lore, and trophies unlocked. 100 Entropy Tokens granted.", type: "info" });
+      }
+
       // --- GAME LOOP ---
       let animationFrameId = null;
       function gameLoop() {
@@ -4215,11 +4254,19 @@
         Game.lastUpdate = Date.now();
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         gameLoop();
-        Bus.emit("feedback:message", {
-          message: "Welcome to the Omnidimensional Conflux!",
-          type: "info",
-          fontClass: "font-arcade",
-        });
+
+        // Check for debug mode activation via URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('debug') === 'true' || urlParams.get('debug') === '1') {
+          // Timeout to ensure initial rendering/loading is mostly done
+          setTimeout(activateDebugMode, 500);
+        } else {
+           Bus.emit("feedback:message", {
+            message: "Welcome to the Omnidimensional Conflux!",
+            type: "info",
+            fontClass: "font-arcade",
+          });
+        }
       };
     </script>
   </body>
