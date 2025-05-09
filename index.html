@@ -86,20 +86,20 @@
         border-style: solid;
       }
 
-      /* Soup: Warm, Cosmic Amber/Yellow */
+      /* Soup: Cosmic Broth - Deep Purples/Blues */
       .domain-card-soup {
-        background: radial-gradient(circle, #FCE5A0, #F9B83A); /* Softer yellow/amber */
-        border: 2px double #D0800A; /* Thinner, slightly darker double border */
-        border-radius: 15px 15px 6px 6px; /* Smoother bowl shape */
-        animation: gentleBob 3.5s infinite ease-in-out;
+        background: linear-gradient(160deg, #2c0b4d, #1a237e); /* Deep dark purple to deep indigo */
+        border: 2px solid #7E57C2; /* Deep rich purple border */
+        border-radius: 10px; /* Consistent rounding */
+        animation: gentleBob 3.5s infinite ease-in-out; /* Keep gentleBob or change if desired */
       }
       .domain-card-soup h3 { /* Target the title specifically */
-        color: #78350F !important; /* Dark brown (amber-900) for strong contrast */
-        text-shadow: 1px 1px 1px rgba(0,0,0,0.3); /* Subtle shadow for depth */
+        color: #EDE7F6 !important; /* Light lavender/off-white for contrast */
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.7); /* Darker shadow for light text */
       }
       .domain-card-soup:hover {
-        box-shadow: 0 0 18px rgba(251, 191, 36, 0.7), 0 0 8px rgba(253, 230, 138, 0.3) inset; /* Softer glow */
-        transform: scale(1.005) rotate(0.5deg); /* Less rotation */
+        box-shadow: 0 0 20px rgba(126, 87, 194, 0.7), 0 0 8px rgba(150, 120, 220, 0.4) inset; /* Glow matching new border */
+        transform: scale(1.01) rotate(0.5deg); /* Slight hover effect */
       }
 
       /* Afterlives: Ethereal, Spectral Purple */
@@ -3582,7 +3582,7 @@
         defineDomain({
           id: "soup",
           name: "Cosmic Soup Ladle",
-          color: "#FBBF24",
+          color: "#7E57C2", /* New primary color: Deep Rich Purple */
           cardStyleClass: "domain-card-soup",
           description:
             "Stirring the Primordial Cauldron, one flavor-quark at a time.",
