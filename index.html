@@ -397,6 +397,14 @@
         top: 0.5rem;
         right: 0.75rem;
       }
+      .btn-audio {
+        background-color: #52525b; /* zinc-600 */
+        color: white;
+        padding: 0.5rem 0.75rem; /* Smaller padding */
+      }
+      .btn-audio:hover {
+        background-color: #71717a; /* zinc-500 */
+      }
     </style>
   </head>
   <body class="min-h-screen p-2 sm:p-4 md:p-6">
@@ -433,6 +441,12 @@
             class="btn btn-secondary text-sm font-arcade mb-2 md:mb-0"
           >
             Help (?)
+          </button>
+          <button
+            id="mute-button"
+            class="btn btn-audio text-sm font-arcade mb-2 md:mb-0"
+          >
+            Mute 🔊
           </button>
         </div>
       </header>
@@ -623,6 +637,122 @@
     <script>
       const DOMAIN_UNLOCK_ORDER = ["gardeners", "soundwaves", "emotions", "soup", "snackbar", "fractals", "afterlives"];
 
+      // --- AUDIO MANAGER ---
+      const AudioManager = (() => {
+        let audioContext = null;
+        let isMuted = false;
+        let currentSoundSource = null;
+        const AUDIO_MUTED_KEY = "idleUniverseAudioMuted_v1";
+        let muteButtonElement = null;
+
+        function _updateMuteButtonUI() {
+          if (muteButtonElement) {
+            muteButtonElement.textContent = isMuted ? "Unmute 🔈" : "Mute 🔊";
+          }
+        }
+
+        function init() { // Call this on first user gesture
+          if (audioContext && audioContext.state === 'running') return true;
+          
+          if (!audioContext) {
+            try {
+              audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+              console.error("Web Audio API not supported.", e);
+              Bus.emit("feedback:message", { message: "Audio disabled: Web Audio API not supported.", type: "warning" });
+              isMuted = true; // Force mute if context fails
+              _updateMuteButtonUI();
+              return false;
+            }
+          }
+
+          if (audioContext.state === 'suspended') {
+            audioContext.resume()
+              .then(() => {
+                console.log("AudioContext resumed.");
+                Bus.emit("feedback:message", { message: "Audio enabled.", type: "info" });
+              })
+              .catch(e => {
+                console.error("Error resuming AudioContext:", e);
+                Bus.emit("feedback:message", { message: "Could not enable audio.", type: "warning" });
+                isMuted = true; // Force mute if resume fails
+                _updateMuteButtonUI();
+              });
+          }
+          return true;
+        }
+
+        function playSound(filePath) {
+          if (isMuted || !audioContext || audioContext.state !== 'running') {
+            if (!audioContext || audioContext.state !== 'running') {
+              // console.warn("AudioContext not ready. Click something to enable audio.");
+            }
+            return;
+          }
+
+          if (currentSoundSource) {
+            try {
+              currentSoundSource.stop();
+            } catch (e) { /* ignore */ }
+            currentSoundSource.disconnect();
+            currentSoundSource = null;
+          }
+
+          fetch(filePath)
+            .then(response => {
+              if (!response.ok) throw new Error(`HTTP error! status: ${response.status} for ${filePath}`);
+              return response.arrayBuffer();
+            })
+            .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
+            .then(audioBuffer => {
+              const source = audioContext.createBufferSource();
+              source.buffer = audioBuffer;
+              source.connect(audioContext.destination);
+              source.start(0);
+              currentSoundSource = source;
+              source.onended = () => {
+                if (currentSoundSource === source) {
+                  currentSoundSource = null;
+                }
+              };
+            })
+            .catch(e => console.error(`Error playing sound ${filePath}:`, e));
+        }
+
+        function toggleMute() {
+          if (!audioContext || audioContext.state === 'suspended') {
+            init(); 
+          }
+          isMuted = !isMuted;
+          localStorage.setItem(AUDIO_MUTED_KEY, isMuted.toString());
+          _updateMuteButtonUI();
+          if (isMuted && currentSoundSource) {
+            try {
+              currentSoundSource.stop();
+            } catch (e) { /* ignore */ }
+            currentSoundSource.disconnect();
+            currentSoundSource = null;
+          }
+          Bus.emit("feedback:message", { message: isMuted ? "Audio Muted 🔈" : "Audio Unmuted 🔊", type: "info" });
+        }
+
+        function loadMuteState() {
+          const storedMuteState = localStorage.getItem(AUDIO_MUTED_KEY);
+          isMuted = storedMuteState === "true";
+          muteButtonElement = document.getElementById("mute-button");
+          if (muteButtonElement) {
+            muteButtonElement.addEventListener('click', toggleMute);
+          }
+          _updateMuteButtonUI();
+        }
+        
+        return {
+          init,
+          playSound,
+          loadMuteState
+        };
+      })();
+
       // --- 1. EVENT BUS ---
       const Bus = (() => {
         const listeners = new Map();
@@ -733,6 +863,7 @@
       // with minor adjustments for tutorial integration or clarity if needed.
       // For brevity, I'll only show changes or key parts.
       function clickDomain(domainId) {
+        AudioManager.init(); // Ensure audio context is active on user interaction
         const domain = Game.domains[domainId];
         if (!domain) return;
         let clickMultiplier = 1;
@@ -1017,7 +1148,8 @@
         triggerFn,
         message,
         oneTime = true,
-        onFireAction = null
+        onFireAction = null,
+        audioFile = null
       ) {
         storyEvents.push({
           id,
@@ -1026,6 +1158,7 @@
           action: onFireAction,
           fired: Game.storyFlags.storyEventStates[id]?.fired || false, // Initialize from persistent state
           oneTime,
+          audioFile,
         });
       }
       function checkStoryEvents() {
@@ -1038,7 +1171,10 @@
             }
             addMessageToStoryLog(`📜 ${ev.message}`, "story-log-entry text-teal-300");
             if (ev.action) ev.action(Game);
-            Bus.emit("story:fired", { eventId: ev.id, message: ev.message });
+            if (ev.audioFile) {
+              AudioManager.playSound(ev.audioFile);
+            }
+            Bus.emit("story:fired", { eventId: ev.id, message: ev.message, audioFile: ev.audioFile });
           }
         });
       }
@@ -1912,6 +2048,16 @@
       }
 
       // --- DOMAIN UNLOCK LOGIC ---
+      const DOMAIN_INTRO_AUDIO = {
+        "gardeners": "out_audio/gardeners_01_intro.mp3", // Often tied to initial game start
+        "soundwaves": "out_audio/soundwaves_01_intro.mp3",
+        "emotions": "out_audio/emotions_01_intro.mp3",
+        "soup": "out_audio/soup_01_intro.mp3",
+        "snackbar": "out_audio/snackbar_01_intro.mp3",
+        "fractals": "out_audio/fractals_01_intro.mp3",
+        "afterlives": "out_audio/afterlives_01_intro.mp3"
+      };
+
       function checkAndUnlockNextDomain() {
         let previousDomainId = null;
         let newDomainUnlockedThisTick = false;
@@ -2735,6 +2881,11 @@
             // Add to story log for persistence
             const messageHTML = `🌌 ${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}`; // Basic HTML escaping
             addMessageToStoryLog(messageHTML, "story-log-entry text-purple-400 font-bold");
+
+            const audioFile = DOMAIN_INTRO_AUDIO[domainId];
+            if (audioFile) {
+                AudioManager.playSound(audioFile);
+            }
         }
       });
 
@@ -2860,6 +3011,7 @@
 
       if (closeHowToPlayModal && gotItHowToPlayModal && howToPlayModal) {
         const dismissModal = () => {
+          AudioManager.init(); // User interaction
           howToPlayModal.classList.add("hidden");
           localStorage.setItem("hasSeenHowToPlay_v1", "true");
           TutorialManager.checkState(); // Start coach marks after initial modal if not completed
@@ -3378,7 +3530,7 @@
       // --- STORYLINE DEFINITIONS ---
 
       // Helper function to register lore events
-      function registerLore(domainId, level, triggerFn, oneTime = true) {
+      function registerLore(domainId, level, triggerFn, oneTime = true, audioFile = null) {
         const domain = Game.domains[domainId];
         if (
           !domain ||
@@ -3407,7 +3559,7 @@
               newUnlockedLevel: game.domains[domainId].unlockedLoreLevel,
             });
           }
-        });
+        }, audioFile);
       }
 
       function defineStorylines() {
@@ -3416,14 +3568,20 @@
         addStoryEvent(
           "genesis",
           () => Game.t > 1000,
-          "A faint hum... The Conflux awakens. You feel an urge to... click?"
+          "A faint hum... The Conflux awakens. You feel an urge to... click?",
+          true,
+          null,
+          "out_audio/gardeners_01_intro.mp3" 
         );
         addStoryEvent(
           "firstPetalHundred",
           () =>
             Game.getResource("probabilityPetal") >= 100 &&
             (Game.domains.gardeners?.unlockedLoreLevel || 0) < 2,
-          "Quantum Gardener: 'Each petal, a possibility.'"
+          "Quantum Gardener: 'Each petal, a possibility.'",
+          true,
+          null,
+          "out_audio/gardeners_06_hundred_petals.mp3"
         ); // Example of tying old story to new lore system
         addStoryEvent(
           "allDomainsActive",
@@ -3442,12 +3600,12 @@
           0;
 
         // 🌱 Quantum Gardeners Lore
-        registerLore(
+        registerLore( // Note: "genesis" event already plays gardeners_01_intro.mp3
           "gardeners",
           1,
-          () => Game.getResource("probabilityPetal") > 0
+          () => Game.getResource("probabilityPetal") > 0 
         );
-        registerLore(
+        registerLore( // Note: "firstPetalHundred" plays gardeners_06_hundred_petals.mp3
           "gardeners",
           2,
           () => Game.getResource("probabilityPetal") >= 100
@@ -3458,9 +3616,17 @@
           () =>
             Game.domains.gardeners?.generators.find(
               (g) => g.id === "timelineBloomer"
-            )?.level >= 1
+            )?.level >= 1,
+          true, // oneTime
+          "out_audio/gardeners_03_bloomer_purchase.mp3"
         );
-        registerLore("gardeners", 4, () => getDomainLevel("gardeners") >= 10);
+        registerLore(
+          "gardeners", 
+          4, 
+          () => getDomainLevel("gardeners") >= 10,
+          true,
+          "out_audio/gardeners_04_ten_bloomers.mp3" // Assuming 10 total levels ~ 10 bloomers for this example
+        );
         registerLore(
           "gardeners",
           5,
@@ -3805,14 +3971,25 @@
           updateGlobalStatsUI();
         }
         // If gameWasLoaded, loadGame() already called render/update functions.
+        
+        AudioManager.loadMuteState(); // Load mute state and attach listener to button
 
         if (prestigeButton)
-          prestigeButton.addEventListener("click", attemptPrestige);
+          prestigeButton.addEventListener("click", () => {
+            AudioManager.init(); // User interaction
+            attemptPrestige();
+          });
         const saveButton = document.getElementById("save-game-button");
-        if (saveButton) saveButton.addEventListener("click", saveGame);
+        if (saveButton) saveButton.addEventListener("click", () => {
+            AudioManager.init(); // User interaction
+            saveGame();
+        });
         const loadButton = document.getElementById("load-game-button");
-        if (loadButton) loadButton.addEventListener("click", loadGame);
-
+        if (loadButton) loadButton.addEventListener("click", () => {
+            AudioManager.init(); // User interaction
+            loadGame();
+        });
+        
         // Quick-Start Tagline (Layer 1)
         if (quickStartTagline) {
           if (!localStorage.getItem("hasPlayedBefore_v1")) {
