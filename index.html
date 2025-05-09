@@ -2842,6 +2842,7 @@
         addMessageToStoryLog(messageHTML, `story-log-entry italic ${color} ${fontClass || ""}`);
       });
       Bus.on("feedback:click_visual", ({ element, x, y, text }) => {
+        AudioManager.init(); // Also a user interaction
         /* ... existing click visual logic ... */
         const fb = document.createElement("div");
         fb.textContent = text;
