@@ -619,13 +619,18 @@
         <div class="stat-bar mt-2">
           <div id="reality-strain-bar" class="stat-bar-fill"></div>
         </div>
-        <button
-          id="prestige-button"
-          class="btn btn-primary mt-4 w-full font-arcade text-lg"
-          disabled
-        >
-          Conflux Collapse!
-        </button>
+        <div class="tooltip"> <!-- Added tooltip wrapper -->
+          <button
+            id="prestige-button"
+            class="btn btn-primary mt-4 w-full font-arcade text-lg"
+            disabled
+          >
+            Conflux Collapse!
+          </button>
+          <span id="prestige-tooltip" class="tooltiptext" style="width: 300px; text-align: left; line-height: 1.5;">
+            <!-- Content will be set by JS -->
+          </span>
+        </div>
       </div>
 
       <!-- Story Log Container -->
@@ -724,14 +729,30 @@
           <ul>
             <li>Click a Domain card to earn its primary resource.</li>
             <li>Spend resources on Generators for passive income.</li>
-            <li>Use abilities to buff yourself or sabotage rivals.</li>
+            <li>Use abilities to buff yourself or affect other Domains.</li>
             <li>
-              Watch Reality Strain rise; when it maxes out, smash Conflux
-              Collapse to earn Entropy Tokens.
+              Actions increase <strong>Reality Strain</strong>. When it's full, the "Conflux Collapse!" button activates.
+            </li>
+          </ul>
+          <h3 class="text-xl font-semibold text-amber-300 mt-4 mb-2">
+            Conflux Collapse (Prestige):
+          </h3>
+          <ul>
+            <li>
+              Clicking "Conflux Collapse!" resets your current game progress: resources, generator levels, and domain unlocks (except the first).
             </li>
             <li>
-              Tokens grant permanent multipliers—repeat the cycle and see how
-              far the multiverse stretches!
+              In return, you earn <strong style="color: #A78BFA;">Entropy Tokens</strong>. The more progress you've made (especially total generator levels), the more tokens you'll get.
+            </li>
+            <li>
+              <strong>Each Entropy Token permanently grants:</strong>
+              <ul>
+                <li style="margin-left: 1rem;">- <strong style="color: #6EE7B7;">+1%</strong> to Global Production Rate for all generators.</li>
+                <li style="margin-left: 1rem;">- <strong style="color: #6EE7B7;">+0.5%</strong> to Global Click Power for all domains.</li>
+              </ul>
+            </li>
+            <li>
+              Prestiging is key to long-term growth, allowing you to reach new heights much faster in subsequent cycles!
             </li>
           </ul>
           <p class="mt-4 text-sm text-gray-400">
@@ -1587,9 +1608,9 @@
             totalTokens: Game.entropyTokens,
           });
           Bus.emit("feedback:message", {
-            message: `Conflux Collapsed! Earned ${tokensEarned} Entropy Tokens.`,
+            message: `🌌 CONFLUX COLLAPSED! 🌌<br>You earned <strong style="color: #FCD34D;">${tokensEarned}</strong> Entropy Token(s)!<br>Total: <strong style="color: #A78BFA;">${Game.entropyTokens}</strong> Tokens.<br>Global Production: <strong style="color: #6EE7B7;">+${Game.entropyTokens}%</strong>, Click Power: <strong style="color: #6EE7B7;">+${(Game.entropyTokens * 0.5).toFixed(1)}%</strong>.<br>A new cycle begins with enhanced potential!`,
             type: "success",
-            fontClass: "font-arcade text-xl",
+            fontClass: "font-arcade text-lg", // Adjusted size for more text
           });
           renderAllDomains();
           updateGlobalStatsUI();
@@ -2692,6 +2713,7 @@
       );
       const realityStrainBar = document.getElementById("reality-strain-bar");
       const prestigeButton = document.getElementById("prestige-button");
+      const prestigeTooltip = document.getElementById("prestige-tooltip"); // Get the new tooltip span
       const targetOverlay = document.getElementById("target-overlay");
       const quickStartTagline = document.getElementById("quick-start-tagline");
 
@@ -3124,6 +3146,31 @@
               "hover:bg-indigo-700"
             );
             prestigeButton.classList.remove("bg-red-500", "hover:bg-red-600");
+          }
+
+          // Update prestige button tooltip
+          if (prestigeTooltip) {
+            const tokensToEarn = Math.floor(
+              1 +
+              Game.prestigeCount * 0.5 +
+              Object.values(Game.domains).reduce(
+                (sum, d) => sum + d.generators.reduce((s, g) => s + g.level, 0),
+                0
+              ) / 20
+            );
+            let tooltipHTML = `
+              <strong>Perform a Conflux Collapse!</strong><br>
+              Resets your current progress (resources, generator levels, domain unlocks) but grants powerful <strong style="color: #A78BFA;">Entropy Tokens</strong>.<br><br>
+              You will earn: <strong style="color: #FCD34D;">${tokensToEarn}</strong> Entropy Token(s) this collapse.<br><br>
+              Each Entropy Token grants:<br>
+              - <strong style="color: #6EE7B7;">+1%</strong> Global Production Rate<br>
+              - <strong style="color: #6EE7B7;">+0.5%</strong> Global Click Power<br><br>
+              Current Total: <strong style="color: #A78BFA;">${Game.entropyTokens}</strong> Tokens (+${Game.entropyTokens}% Prod, +${(Game.entropyTokens * 0.5).toFixed(1)}% Click)
+            `;
+            if (Game.realityStrain < Game.maxRealityStrain) {
+              tooltipHTML = `Reach 100% Reality Strain to enable Conflux Collapse.<br><br>` + tooltipHTML;
+            }
+            prestigeTooltip.innerHTML = tooltipHTML;
           }
         }
       }
