@@ -3241,8 +3241,8 @@
         else if (type === "warning") color = "text-yellow-400";
         else if (type === "error") color = "text-red-400";
         
-        // The message content for addMessageToStoryLog should be HTML-ready
-        const messageHTML = `📢 ${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}`; // Basic HTML escaping for the message part
+        // Message is now expected to be either plain text or pre-formatted HTML
+        const messageHTML = `📢 ${message}`; 
         addMessageToStoryLog(messageHTML, `story-log-entry italic ${color} ${fontClass || ""}`);
       });
       Bus.on("feedback:click_visual", ({ element, x, y, text }) => {
@@ -3293,7 +3293,8 @@
                 fontClass: "font-arcade text-lg",
             });
             // Add to story log for persistence
-            const messageHTML = `🌌 ${message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}`; // Basic HTML escaping
+            // Message is now expected to be either plain text or pre-formatted HTML
+            const messageHTML = `🌌 ${message}`;
             addMessageToStoryLog(messageHTML, "story-log-entry text-purple-400 font-bold");
 
             const audioFile = DOMAIN_INTRO_AUDIO[domainId];
