@@ -3872,41 +3872,26 @@
         registerLore("soundwaves", 10, () => getDomainLevel("soundwaves") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soundwaves.lore_level_10);
 
         // 🍲 Cosmic Soup Ladle Lore
+        addStoryEvent("soup_first_quark_audio", () => Game.getResource("flavorQuark") > 0 && Game.domains.soup.unlocked && !Game.storyFlags.played_audio_soup_first_resource_flavorQuark,
+          "First Flavor Quark!", true, () => Game.storyFlags.played_audio_soup_first_resource_flavorQuark = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soup.first_resource_flavorQuark);
+        addStoryEvent("soup_first_generator_audio", () => Game.domains.soup?.generators.find(g=>g.id === 'primordialBroth')?.level >= 1 && !Game.storyFlags.played_audio_soup_first_generator_primordialBroth,
+          "Primordial Broth started!", true, () => Game.storyFlags.played_audio_soup_first_generator_primordialBroth = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soup.first_generator_primordialBroth);
+        addStoryEvent("soup_resource_milestone_1k_audio", () => Game.getResource("flavorQuark") >= 1000 && !Game.storyFlags.played_audio_soup_resource_milestone_1000_flavorQuark,
+          "1000 Flavor Quarks!", true, () => Game.storyFlags.played_audio_soup_resource_milestone_1000_flavorQuark = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soup.resource_milestone_1000_flavorQuark);
+        addStoryEvent("soup_level_50_generators_audio", () => getDomainLevel("soup") >= 50 && !Game.storyFlags.played_audio_soup_generator_milestone_level_50_total,
+          "Soup generators reach level 50!", true, () => Game.storyFlags.played_audio_soup_generator_milestone_level_50_total = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soup.generator_milestone_level_50_total);
+        addStoryEvent("soup_slurp_chain_audio", () => Game.storyFlags.soup_slurpsThisPrestige >= 3 && !Game.storyFlags.played_audio_soup_ability_milestone_slurp_chain, // Example: 3 slurps
+          "Slurp chain achieved!", true, () => Game.storyFlags.played_audio_soup_ability_milestone_slurp_chain = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soup.ability_milestone_slurp_chain);
+
         registerLore("soup", 1, () => Game.getResource("flavorQuark") > 0);
-        registerLore("soup", 2, () => Game.getResource("flavorQuark") >= 1000);
-        registerLore(
-          "soup",
-          3,
-          () =>
-            Game.domains.soup?.generators.find(
-              (g) => g.id === "primordialBroth"
-            )?.level >= 1
-        );
+        registerLore("soup", 2, () => Game.getResource("flavorQuark") >= 1000, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soup.lore_level_X_alphabet); // soup_06_alphabet_particles.mp3
+        registerLore("soup", 3, () => Game.domains.soup?.generators.find((g) => g.id === "primordialBroth")?.level >= 1, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soup.lore_level_Z_foam); // soup_08_flavor_foam.mp3
         registerLore("soup", 4, () => getDomainLevel("soup") >= 10);
-        registerLore(
-          "soup",
-          5,
-          () => Game.storyFlags.soup_castBigSlurpOnce === true
-        );
-        registerLore(
-          "soup",
-          6,
-          () =>
-            Game.domains.soup?.generators.find(
-              (g) => g.id === "primordialBroth"
-            )?.level >= 25
-        );
-        registerLore(
-          "soup",
-          7,
-          () => getDomainLevel("soup") >= 25 && getDomainLevel("snackbar") >= 25
-        );
+        registerLore("soup", 5, () => Game.storyFlags.soup_castBigSlurpOnce === true, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soup.lore_level_Y_kimchi); // soup_07_kimchi_fermented.mp3 (Ability cast audio is separate)
+        registerLore("soup", 6, () => Game.domains.soup?.generators.find((g) => g.id === "primordialBroth")?.level >= 25);
+        registerLore("soup", 7, () => getDomainLevel("soup") >= 25 && getDomainLevel("snackbar") >= 25);
         registerLore("soup", 8, () => getDomainLevel("soup") >= 50);
-        registerLore(
-          "soup",
-          9,
-          () => Game.storyFlags.soup_slurpsThisPrestige >= 3
-        );
+        registerLore("soup", 9, () => Game.storyFlags.soup_slurpsThisPrestige >= 3); // Audio for slurp chain handled by separate addStoryEvent
         registerLore("soup", 10, () => getDomainLevel("soup") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.soup.lore_level_10);
 
         // 📑 Bureaucratic Afterlives Lore
@@ -3931,49 +3916,24 @@
         registerLore("afterlives", 10, () => getDomainLevel("afterlives") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.afterlives.lore_level_10);
 
         // 🔷 Fractal Friend Factory Lore
-        registerLore(
-          "fractals",
-          1,
-          () => Game.getResource("symmetryShard") > 0
-        );
-        registerLore(
-          "fractals",
-          2,
-          () => Game.getResource("symmetryShard") >= 100
-        );
-        registerLore(
-          "fractals",
-          3,
-          () =>
-            Game.domains.fractals?.generators.find((g) => g.id === "fractalPet")
-              ?.level >= 1
-        );
-        registerLore("fractals", 4, () => getDomainLevel("fractals") >= 10);
-        registerLore(
-          "fractals",
-          5,
-          () => Game.storyFlags.fractals_castRecursiveSwarmOnce === true
-        );
-        registerLore(
-          "fractals",
-          6,
-          () =>
-            Game.domains.fractals?.generators.find((g) => g.id === "fractalPet")
-              ?.level >= 25
-        );
-        registerLore(
-          "fractals",
-          7,
-          () =>
-            getDomainLevel("fractals") >= 25 &&
-            getDomainLevel("gardeners") >= 25
-        );
-        registerLore("fractals", 8, () => getDomainLevel("fractals") >= 50);
-        registerLore(
-          "fractals",
-          9,
-          () => Game.realityStrain / Game.maxRealityStrain >= 0.7
-        );
+        addStoryEvent("fractals_first_shard_audio", () => Game.getResource("symmetryShard") > 0 && Game.domains.fractals.unlocked && !Game.storyFlags.played_audio_fractals_first_resource_symmetryShard,
+          "First Symmetry Shard!", true, () => Game.storyFlags.played_audio_fractals_first_resource_symmetryShard = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.fractals.first_resource_symmetryShard);
+        addStoryEvent("fractals_first_generator_audio", () => Game.domains.fractals?.generators.find(g=>g.id === 'fractalPet')?.level >= 1 && !Game.storyFlags.played_audio_fractals_first_generator_fractalPet,
+          "Fractal Pet forged!", true, () => Game.storyFlags.played_audio_fractals_first_generator_fractalPet = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.fractals.first_generator_fractalPet);
+        addStoryEvent("fractals_resource_milestone_1k_audio", () => Game.getResource("symmetryShard") >= 1000 && !Game.storyFlags.played_audio_fractals_resource_milestone_1000_symmetryShard,
+          "1000 Symmetry Shards!", true, () => Game.storyFlags.played_audio_fractals_resource_milestone_1000_symmetryShard = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.fractals.resource_milestone_1000_symmetryShard);
+        addStoryEvent("fractals_level_50_generators_audio", () => getDomainLevel("fractals") >= 50 && !Game.storyFlags.played_audio_fractals_generator_milestone_level_50_total,
+          "Fractal generators reach level 50!", true, () => Game.storyFlags.played_audio_fractals_generator_milestone_level_50_total = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.fractals.generator_milestone_level_50_total);
+
+        registerLore("fractals", 1, () => Game.getResource("symmetryShard") > 0);
+        registerLore("fractals", 2, () => Game.getResource("symmetryShard") >= 100);
+        registerLore("fractals", 3, () => Game.domains.fractals?.generators.find((g) => g.id === "fractalPet")?.level >= 1);
+        registerLore("fractals", 4, () => getDomainLevel("fractals") >= 10, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.fractals.lore_level_X_inversion); // fractals_06_factory_inversion.mp3
+        registerLore("fractals", 5, () => Game.storyFlags.fractals_castRecursiveSwarmOnce === true, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.fractals.lore_level_W_mirror_cache); // fractals_14_mirror_cache_found.mp3 (Ability cast audio is separate)
+        registerLore("fractals", 6, () => Game.domains.fractals?.generators.find((g) => g.id === "fractalPet")?.level >= 25);
+        registerLore("fractals", 7, () => getDomainLevel("fractals") >= 25 && getDomainLevel("gardeners") >= 25, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.fractals.lore_level_Y_vault); // fractals_08_negative_dimension_vault.mp3
+        registerLore("fractals", 8, () => getDomainLevel("fractals") >= 50, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.fractals.lore_level_Z_shield); // fractals_09_antifractal_shield.mp3
+        registerLore("fractals", 9, () => Game.realityStrain / Game.maxRealityStrain >= 0.7);
         registerLore("fractals", 10, () => getDomainLevel("fractals") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.fractals.lore_level_10);
 
         // ⏰ Time-Traveling Snack Bar Lore
@@ -3998,44 +3958,25 @@
         registerLore("snackbar", 10, () => getDomainLevel("snackbar") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.snackbar.lore_level_10);
 
         // 💠 Emotion Mining Co. Lore
+        addStoryEvent("emotions_first_vibe_audio", () => Game.getResource("vibeOre") > 0 && Game.domains.emotions.unlocked && !Game.storyFlags.played_audio_emotions_first_resource_vibeOre,
+          "First Vibe Ore!", true, () => Game.storyFlags.played_audio_emotions_first_resource_vibeOre = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.emotions.first_resource_vibeOre);
+        addStoryEvent("emotions_first_generator_audio", () => Game.domains.emotions?.generators.find(g=>g.id === 'empathyReactor')?.level >= 1 && !Game.storyFlags.played_audio_emotions_first_generator_empathyReactor,
+          "Empathy Reactor built!", true, () => Game.storyFlags.played_audio_emotions_first_generator_empathyReactor = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.emotions.first_generator_empathyReactor);
+        addStoryEvent("emotions_resource_milestone_1k_audio", () => Game.getResource("vibeOre") >= 1000 && !Game.storyFlags.played_audio_emotions_resource_milestone_1000_vibeOre,
+          "1000 Vibe Ores!", true, () => Game.storyFlags.played_audio_emotions_resource_milestone_1000_vibeOre = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.emotions.resource_milestone_1000_vibeOre);
+        addStoryEvent("emotions_level_50_generators_audio", () => getDomainLevel("emotions") >= 50 && !Game.storyFlags.played_audio_emotions_generator_milestone_level_50_total,
+          "Emotion generators reach level 50!", true, () => Game.storyFlags.played_audio_emotions_generator_milestone_level_50_total = true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.emotions.generator_milestone_level_50_total);
+
         registerLore("emotions", 1, () => Game.getResource("vibeOre") > 0);
-        registerLore("emotions", 2, () => Game.getResource("vibeOre") >= 100);
-        registerLore(
-          "emotions",
-          3,
-          () =>
-            Game.domains.emotions?.generators.find(
-              (g) => g.id === "empathyReactor"
-            )?.level >= 1
-        );
-        registerLore("emotions", 4, () => getDomainLevel("emotions") >= 10);
-        registerLore(
-          "emotions",
-          5,
-          () => Game.storyFlags.emotions_castSerenityFieldOnce === true
-        );
-        registerLore(
-          "emotions",
-          6,
-          () =>
-            Game.domains.emotions?.generators.find(
-              (g) => g.id === "empathyReactor"
-            )?.level >= 25
-        );
-        registerLore(
-          "emotions",
-          7,
-          () =>
-            getDomainLevel("emotions") >= 25 &&
-            getDomainLevel("soundwaves") >= 25
-        );
-        registerLore("emotions", 8, () => getDomainLevel("emotions") >= 50);
-        registerLore(
-          "emotions",
-          9,
-          () => Game.realityStrain / Game.maxRealityStrain >= 0.9
-        );
-        registerLore("emotions", 10, () => getDomainLevel("emotions") >= 100);
+        registerLore("emotions", 2, () => Game.getResource("vibeOre") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.emotions.lore_level_X_regret_gas); // emotions_06_regret_gas_detected.mp3
+        registerLore("emotions", 3, () => Game.domains.emotions?.generators.find((g) => g.id === "empathyReactor")?.level >= 1);
+        registerLore("emotions", 4, () => getDomainLevel("emotions") >= 10, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.emotions.lore_level_Y_plateau); // emotions_07_subconscious_plateau.mp3
+        registerLore("emotions", 5, () => Game.storyFlags.emotions_castSerenityFieldOnce === true); // Ability cast audio is separate
+        registerLore("emotions", 6, () => Game.domains.emotions?.generators.find((g) => g.id === "empathyReactor")?.level >= 25);
+        registerLore("emotions", 7, () => getDomainLevel("emotions") >= 25 && getDomainLevel("soundwaves") >= 25, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.emotions.lore_level_Z_nostalgia); // emotions_13_nostalgia_vein.mp3
+        registerLore("emotions", 8, () => getDomainLevel("emotions") >= 50, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.emotions.lore_level_W_courage); // emotions_14_courage_plumes.mp3
+        registerLore("emotions", 9, () => Game.realityStrain / Game.maxRealityStrain >= 0.9);
+        registerLore("emotions", 10, () => getDomainLevel("emotions") >= 100, true, DOMAIN_SPECIFIC_AUDIO_TRIGGERS.emotions.lore_level_10);
 
         // Tutorial Related Story Hints
         addStoryEvent(
