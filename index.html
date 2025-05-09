@@ -2440,7 +2440,11 @@
         let previousDomainId = null;
         let newDomainUnlockedThisTick = false;
 
-        for (const domainId of DOMAIN_UNLOCK_ORDER) {
+        const domainsToConsider = Game.prestigeCount === 0 
+            ? DOMAIN_UNLOCK_ORDER.slice(0, 4) // Only first 4 domains if no prestige yet
+            : DOMAIN_UNLOCK_ORDER;
+
+        for (const domainId of domainsToConsider) {
             const domain = Game.domains[domainId];
             if (!domain) {
                 console.warn(`Domain ${domainId} not found in Game.domains during unlock check.`);
@@ -4029,11 +4033,16 @@
         addStoryEvent(
           "allDomainsActive",
           (game) => {
-            const lastDomainId = DOMAIN_UNLOCK_ORDER[DOMAIN_UNLOCK_ORDER.length - 1];
-            return game.domains[lastDomainId]?.unlocked && 
-                   game.domains[lastDomainId]?.generators.some(g => g.level > 0);
+            const domainsToCheck = game.prestigeCount === 0 
+                ? DOMAIN_UNLOCK_ORDER.slice(0, 4) 
+                : DOMAIN_UNLOCK_ORDER;
+            const lastDomainIdInScope = domainsToCheck[domainsToCheck.length - 1];
+            
+            return game.domains[lastDomainIdInScope]?.unlocked && 
+                   game.domains[lastDomainIdInScope]?.generators.some(g => g.level > 0) &&
+                   domainsToCheck.every(id => game.domains[id]?.unlocked); // Ensure all in scope are unlocked
           },
-          "All known Domains hum with activity. The Conflux is truly alive!",
+          "All currently accessible Domains hum with activity. The Conflux is truly alive!", // Message slightly adjusted
           true // oneTime
         );
 
