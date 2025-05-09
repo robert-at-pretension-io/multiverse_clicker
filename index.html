@@ -15,20 +15,20 @@
     />
     <style>
       @keyframes pulseGlowGreen {
-        0%, 100% { box-shadow: 0 0 20px rgba(52, 211, 153, 0.7), 0 0 5px rgba(52, 211, 153, 0.5) inset; }
-        50% { box-shadow: 0 0 30px rgba(52, 211, 153, 1), 0 0 10px rgba(52, 211, 153, 0.7) inset; }
+        0%, 100% { box-shadow: 0 0 15px rgba(52, 211, 153, 0.5), 0 0 3px rgba(52, 211, 153, 0.3) inset; }
+        50% { box-shadow: 0 0 22px rgba(52, 211, 153, 0.7), 0 0 6px rgba(52, 211, 153, 0.5) inset; }
       }
       @keyframes pulseGlowBlue {
-        0%, 100% { box-shadow: 0 0 20px rgba(96, 165, 250, 0.7), 0 0 5px rgba(96, 165, 250, 0.5) inset; border-color: #60A5FA; }
-        50% { box-shadow: 0 0 30px rgba(96, 165, 250, 1), 0 0 10px rgba(96, 165, 250, 0.7) inset; border-color: #93C5FD; }
+        0%, 100% { box-shadow: 0 0 15px rgba(96, 165, 250, 0.5), 0 0 3px rgba(96, 165, 250, 0.3) inset; border-color: #559CF5; }
+        50% { box-shadow: 0 0 22px rgba(96, 165, 250, 0.7), 0 0 6px rgba(96, 165, 250, 0.5) inset; border-color: #7FBFFF; }
       }
       @keyframes shimmerPurple {
-        0%, 100% { box-shadow: 0 0 20px rgba(167, 139, 250, 0.6), 0 0 8px rgba(200, 180, 255, 0.4) inset; opacity: 0.9; }
-        50% { box-shadow: 0 0 28px rgba(167, 139, 250, 0.8), 0 0 12px rgba(200, 180, 255, 0.6) inset; opacity: 1; }
+        0%, 100% { box-shadow: 0 0 15px rgba(167, 139, 250, 0.4), 0 0 5px rgba(200, 180, 255, 0.2) inset; opacity: 0.85; }
+        50% { box-shadow: 0 0 22px rgba(167, 139, 250, 0.6), 0 0 8px rgba(200, 180, 255, 0.4) inset; opacity: 0.95; }
       }
-      @keyframes flickerNeonOrange {
-        0%, 100% { box-shadow: 0 0 15px #FB923C, 0 0 25px #FDBA74, 0 0 5px #FED7AA inset; }
-        50% { box-shadow: 0 0 20px #FB923C, 0 0 30px #FDBA74, 0 0 8px #FED7AA inset, 0 0 2px white; }
+      @keyframes flickerNeonOrange { /* Renamed to flickerWarmOrange for subtlety */
+        0%, 100% { box-shadow: 0 0 10px rgba(251, 146, 60, 0.6), 0 0 18px rgba(253, 186, 116, 0.4), 0 0 3px rgba(254, 215, 170, 0.3) inset; }
+        50% { box-shadow: 0 0 15px rgba(251, 146, 60, 0.7), 0 0 22px rgba(253, 186, 116, 0.5), 0 0 5px rgba(254, 215, 170, 0.4) inset; }
       }
       @keyframes subtleWarp {
         0%, 100% { transform: skewX(-0.5deg) skewY(0.25deg); }
@@ -63,100 +63,103 @@
 
       /* Gardener: Organic, Quantum Green */
       .domain-card-gardeners {
-        background: linear-gradient(135deg, #224030, #103020);
-        border: 2px solid #34D399;
-        border-radius: 12px; /* More rounded */
-        animation: pulseGlowGreen 3s infinite ease-in-out;
+        background: linear-gradient(135deg, #1E3A2B, #122A1C); /* Softer dark greens */
+        border: 2px solid #2FBC87; /* Slightly less vibrant green */
+        border-radius: 10px; /* Standardized rounding */
+        animation: pulseGlowGreen 3.5s infinite ease-in-out; /* Slower animation */
       }
       .domain-card-gardeners:hover {
-        transform: scale(1.02);
-        box-shadow: 0 0 35px rgba(52, 211, 153, 0.9), 0 0 15px rgba(100, 255, 200, 0.6) inset;
+        transform: scale(1.015); /* Less aggressive scale */
+        box-shadow: 0 0 25px rgba(52, 211, 153, 0.7), 0 0 10px rgba(100, 255, 200, 0.4) inset; /* Softer hover glow */
       }
 
       /* Soundwaves: Resonant, Electric Blue */
       .domain-card-soundwaves {
-        background: linear-gradient(to right, #1E3A8A, #3B82F6); /* Dark blue to lighter blue */
-        border: 2px dashed #60A5FA; /* Dashed border like sound waves */
-        animation: pulseGlowBlue 2.5s infinite alternate;
+        background: linear-gradient(to right, #1A2F6A, #2D65C0); /* Smoother blue gradient */
+        border: 2px dashed #5095E0; /* Softer dashed border */
+        border-radius: 10px;
+        animation: pulseGlowBlue 3s infinite alternate; /* Slower animation */
       }
       .domain-card-soundwaves:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 30px rgba(96, 165, 250, 0.8), 0 0 10px #FFFFFF inset;
+        transform: translateY(-2px); /* Less aggressive lift */
+        box-shadow: 0 3px 22px rgba(96, 165, 250, 0.6), 0 0 8px rgba(180, 210, 250, 0.4) inset; /* Softer glow, less white */
         border-style: solid;
       }
 
       /* Soup: Warm, Cosmic Amber/Yellow */
       .domain-card-soup {
-        background: radial-gradient(circle, #FDE68A, #FBBF24); /* Light yellow center to amber */
-        border: 3px double #F59E0B; /* Double border like a bowl rim */
-        border-radius: 20px 20px 8px 8px; /* Bowl-like shape */
-        animation: gentleBob 3s infinite ease-in-out;
+        background: radial-gradient(circle, #FCE5A0, #F9B83A); /* Softer yellow/amber */
+        border: 2px double #D0800A; /* Thinner, slightly darker double border */
+        border-radius: 15px 15px 6px 6px; /* Smoother bowl shape */
+        animation: gentleBob 3.5s infinite ease-in-out;
       }
       .domain-card-soup h3 { /* Target the title specifically */
         color: #78350F !important; /* Dark brown (amber-900) for strong contrast */
         text-shadow: 1px 1px 1px rgba(0,0,0,0.3); /* Subtle shadow for depth */
       }
       .domain-card-soup:hover {
-        box-shadow: 0 0 25px rgba(251, 191, 36, 0.9), 0 0 10px rgba(253, 230, 138, 0.5) inset;
-        transform: scale(1.01) rotate(1deg);
+        box-shadow: 0 0 18px rgba(251, 191, 36, 0.7), 0 0 8px rgba(253, 230, 138, 0.3) inset; /* Softer glow */
+        transform: scale(1.005) rotate(0.5deg); /* Less rotation */
       }
 
       /* Afterlives: Ethereal, Spectral Purple */
       .domain-card-afterlives {
-        background-color: #2E1040; /* Deep spectral purple */
-        border: 1px solid #A78BFA;
-        box-shadow: 0 0 15px rgba(167, 139, 250, 0.4);
-        animation: shimmerPurple 4s infinite ease-in-out;
+        background-color: #2A123A; /* Slightly less saturated deep purple */
+        border: 1px solid #9D7FFA; /* Softer purple border */
+        border-radius: 10px;
+        box-shadow: 0 0 12px rgba(167, 139, 250, 0.3); /* Softer initial shadow */
+        animation: shimmerPurple 4.5s infinite ease-in-out; /* Slower animation */
       }
       .domain-card-afterlives:hover {
-        background-color: #3B096C;
-        border-color: #C4B5FD;
-        box-shadow: 0 0 30px rgba(167, 139, 250, 0.8), 0 0 10px rgba(220, 200, 255, 0.5) inset;
-        transform: perspective(500px) rotateY(2deg);
+        background-color: #33105A; /* Slightly lighter hover background */
+        border-color: #B8A5FD;
+        box-shadow: 0 0 22px rgba(167, 139, 250, 0.6), 0 0 8px rgba(220, 200, 255, 0.3) inset; /* Softer hover glow */
+        transform: perspective(600px) rotateY(1deg); /* Less aggressive transform */
       }
 
       /* Fractals: Geometric, Vibrant Pink */
       .domain-card-fractals {
         background: repeating-linear-gradient(
           45deg,
-          #4A044E, /* Dark magenta */
-          #4A044E 10px,
-          #701A75 10px, /* Lighter magenta */
-          #701A75 20px
+          #3D0340, /* Darker, less contrasty magenta */
+          #3D0340 12px, /* Wider stripes for smoother look */
+          #5A155D 12px,
+          #5A155D 24px
         );
-        border: 2px solid #F472B6; /* Vibrant Pink */
-        box-shadow: 0 0 10px #F472B6, 0 0 5px #F472B6 inset;
-        animation: subtleWarp 5s infinite linear;
+        border: 2px solid #E06AB0; /* Slightly desaturated pink */
+        border-radius: 10px;
+        box-shadow: 0 0 8px rgba(244, 114, 182, 0.6), 0 0 4px rgba(244, 114, 182, 0.4) inset; /* Softer initial shadow */
+        animation: subtleWarp 6s infinite linear; /* Slower warp */
       }
       .domain-card-fractals:hover {
-        transform: scale(1.03);
-        box-shadow: 0 0 30px #F472B6, 0 0 15px #F9A8D4 inset, 0 0 5px white;
-        background-size: 40px 40px; /* Make pattern 'zoom' slightly */
+        transform: scale(1.015); /* Less aggressive scale */
+        box-shadow: 0 0 22px rgba(244, 114, 182, 0.7), 0 0 10px rgba(249, 168, 212, 0.4) inset; /* Softer hover glow, no white */
+        background-size: 48px 48px; /* Adjust pattern zoom if needed, or remove */
       }
 
       /* Snackbar: Temporal, Energetic Orange */
       .domain-card-snackbar {
-        background: linear-gradient(45deg, #7C2D12, #EA580C); /* Burnt orange to bright orange */
-        border: 3px outset #FB923C;
-        border-radius: 6px;
-        animation: flickerNeonOrange 1.5s infinite steps(2, end);
+        background: linear-gradient(45deg, #6A260F, #D04A0A); /* Slightly darker, smoother orange gradient */
+        border: 2px outset #E88A30; /* Thinner, slightly less bright outset */
+        border-radius: 8px; /* Smoother radius */
+        animation: flickerWarmOrange 2s infinite steps(3, end); /* Slower, softer flicker (WarmOrange keyframe) */
       }
       .domain-card-snackbar:hover {
-        transform: skewX(-2deg);
-        box-shadow: 0 0 35px #FB923C, 0 0 45px #FDBA74, 0 0 10px #FED7AA inset, 0 0 4px white;
+        transform: skewX(-1deg); /* Less aggressive skew */
+        box-shadow: 0 0 25px rgba(251, 146, 60, 0.7), 0 0 30px rgba(253, 186, 116, 0.5), 0 0 8px rgba(254, 215, 170, 0.4) inset; /* Softer glow, no white */
       }
 
       /* Emotions: Psychic, Moody Indigo */
       .domain-card-emotions {
-        background: radial-gradient(ellipse at bottom, #312E81, #4F46E5); /* Deep indigo to lighter indigo */
-        border: 2px solid #818CF8;
-        border-radius: 0.5rem; /* Standard rectangle, matches .domain-card */
-        animation: gentleBob 3.5s infinite ease-in-out, pulseGlowBlue 4s infinite ease-in-out 0.5s; /* Combine animations */
+        background: radial-gradient(ellipse at bottom, #2B286F, #433DC0); /* Smoother indigo gradient */
+        border: 2px solid #707CF0; /* Softer indigo border */
+        border-radius: 10px; /* Consistent rounding */
+        animation: gentleBob 4s infinite ease-in-out, pulseGlowBlue 4.5s infinite ease-in-out 0.5s; /* Slower animations */
       }
       .domain-card-emotions:hover {
-        transform: scale(1.02) translateY(-2px);
-        box-shadow: 0 0 30px rgba(129, 140, 248, 0.8), 0 0 12px rgba(165, 180, 252, 0.6) inset;
-        background: radial-gradient(ellipse at bottom, #4338CA, #6366F1);
+        transform: scale(1.015) translateY(-1px); /* Less aggressive transform */
+        box-shadow: 0 0 22px rgba(129, 140, 248, 0.6), 0 0 10px rgba(165, 180, 252, 0.4) inset; /* Softer hover glow */
+        background: radial-gradient(ellipse at bottom, #3A32B0, #5558D8); /* Smoother hover background */
       }
 
       .btn {
